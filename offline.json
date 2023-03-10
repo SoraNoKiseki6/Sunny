@@ -1,11 +1,7 @@
-"urls": [
+"urls": [     
         {
-            "url": "https://yydsys.top/duo/v.json",
-            "name": "🏡应用多多家庭版"
-        },
-        {
-            "url": "https://yydsys.top/duo/x.json",
-            "name": "🚀阿里蜂蜜专线"
+            "url": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/config.json",
+            "name": "🚀蜂蜜线路"
         }
     ]
 }
