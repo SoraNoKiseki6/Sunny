@@ -134,6 +134,17 @@
       "filterable": 1,
       "changeable": 1
     },
+{
+      "key": "刷新",
+      "name": "刷新token",
+      "type": 3,
+      "api": "csp_GitCafe",
+      "searchable": 1,
+      "filterable": 1,
+      "changeable": 0,
+      "ext": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/alitoken.txt",
+      "jar": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/alitoken.jar"
+    },
     {
       "key": "紙條",
       "name": "紙條",
