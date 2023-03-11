@@ -1,6 +1,10 @@
 {
         "urls": [
         {
+            "url": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/fantaiying.json",
+            "name": "🎉饭太硬线路"
+        },
+        {
             "url": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/ceshi.json",
             "name": "🚀测试线路"
         },
