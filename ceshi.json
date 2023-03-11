@@ -41,7 +41,7 @@
       "searchable": 1,
       "filterable": 0,
       "changeable": 0,
-      "ext": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/alitoken.txt"
+      "ext": "clan://TVBox/jar/alitoken.txt"
     },
     {
       "key": "盘搜",
