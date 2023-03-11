@@ -1,0 +1,75 @@
+{
+ "spider": "https://ghproxy.com/https://raw.githubusercontent.com/FongMi/CatVodSpider/main/jar/custom_spider.jar;md5;a25f65d9985736693258d27a77386ac5",
+  "sites": [
+    {
+      "key":"js豆瓣",
+      "name":"🏮豆瓣推荐🏮",
+      "type":3,
+      "api":"https://jihulab.com/duomv/duo/-/raw/main/js/drpymin.js",
+      "ext":"https://jihulab.com/duomv/duo/-/raw/main/js/douban.js",
+      "searchable": 0,
+      "quickSearch": 0,
+      "filterable": 1
+    },
+    {
+      "key": "小纸条1",
+      "name": "🔖小纸条",
+      "type": 3,
+      "api": "csp_Paper",
+      "searchable": 1,
+      "filterable": 1,
+      "changeable": 0,
+      "ext": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/alitoken.txt"
+    },
+    {
+      "key": "易搜",
+      "name": "🎯4K易搜",
+      "type": 3,
+      "api": "csp_YiSo",
+      "searchable": 1,
+      "filterable": 0,
+      "changeable": 0,
+      "ext": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/alitoken.txt"
+    },
+    {
+      "key": "盘搜",
+      "name": "📀4K盘搜",
+      "type": 3,
+      "api": "csp_PanSou",
+      "searchable": 1,
+      "filterable": 0,
+      "changeable": 0,
+      "ext": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/alitoken.txt"
+    },
+    {
+      "key": "云搜",
+      "name": "🌤️4K云搜",
+      "type": 3,
+      "api": "csp_UpYun",
+      "searchable": 1,
+      "filterable": 0,
+      "changeable": 0,
+      "ext": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/alitoken.txt"
+    },
+    {
+      "key": "找资源",
+      "name": "🔍4K找资源",
+      "type": 3,
+      "api": "csp_Zhaozy",
+      "searchable": 1,
+      "filterable": 0,
+      "changeable": 0,
+      "ext": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/alitoken.txt$$$yingshi$$$abcd1234"
+    },
+    {
+      "key": "push_agent",
+      "name": "📨推送",
+      "type": 3,
+      "api": "csp_Push",
+      "searchable": 1,
+      "filterable": 0,
+      "changeable": 0,
+      "ext": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/alitoken.txt"
+    }
+  ]
+}
