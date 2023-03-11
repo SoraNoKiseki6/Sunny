@@ -31,7 +31,7 @@
       "searchable": 1,
       "filterable": 1,
       "changeable": 0,
-      "ext": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/alitoken.txt"
+      "ext": ""
     },
     {
       "key": "易搜",
@@ -51,7 +51,7 @@
       "searchable": 1,
       "filterable": 0,
       "changeable": 0,
-      "ext": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/alitoken.txt"
+      "ext": ""
     },
     {
       "key": "云搜",
@@ -61,7 +61,7 @@
       "searchable": 1,
       "filterable": 0,
       "changeable": 0,
-      "ext": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/alitoken.txt"
+      "ext": ""
     },
     {
       "key": "找资源",
@@ -71,7 +71,7 @@
       "searchable": 1,
       "filterable": 0,
       "changeable": 0,
-      "ext": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/alitoken.txt$$$yingshi$$$abcd1234"
+      "ext": ""
     },
     {
       "key": "push_agent",
