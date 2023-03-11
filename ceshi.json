@@ -11,6 +11,18 @@
       "quickSearch": 0,
       "filterable": 1
     },
+   {
+    "key":"csp_GitCafe1",
+    "name":"㊙️刷新令(本地)",
+    "type":3,
+    "api":"csp_Gitcafe",
+    "searchable": 1,
+    "quickSearch": 1,
+    "filterable": 0,
+    "changeable": 0,
+    "ext": "clan://TVBox/jar/alitoken.txt",
+    "jar":"clan://TVBox/jar/ali刷新.jar"
+   },
     {
       "key": "小纸条1",
       "name": "🔖小纸条",
