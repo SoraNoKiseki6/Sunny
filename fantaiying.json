@@ -4,7 +4,7 @@
     "sites": [
         {
             "key": "js豆瓣",
-            "name": "🅱豆瓣┃饭推荐首页",
+            "name": "🅱豆瓣┃推荐",
             "type": 3,
             "api": "https://agit.ai/fantaiying/fty/raw/branch/master/JS/lib/drpy.min.js",
             "ext": "https://agit.ai/fantaiying/fty/raw/branch/master/JS/js/drpy.js",
