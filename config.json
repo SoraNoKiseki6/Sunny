@@ -12,14 +12,14 @@
       "filterable": 1
     },
     {
-      "key": "小纸条1",
+      "key": "小纸条",
       "name": "🔖小纸条",
       "type": 3,
       "api": "csp_Paper",
       "searchable": 1,
       "filterable": 1,
       "changeable": 0,
-      "ext": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/alitoken.txt"
+      "ext": "188320c0d79f439ea8b34a73469083af"
     },
     {
       "key": "易搜",
@@ -29,7 +29,7 @@
       "searchable": 1,
       "filterable": 0,
       "changeable": 0,
-      "ext": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/alitoken.txt"
+      "ext": "188320c0d79f439ea8b34a73469083af"
     },
     {
       "key": "盘搜",
@@ -39,7 +39,7 @@
       "searchable": 1,
       "filterable": 0,
       "changeable": 0,
-      "ext": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/alitoken.txt"
+      "ext": "188320c0d79f439ea8b34a73469083af"
     },
     {
       "key": "云搜",
@@ -49,7 +49,7 @@
       "searchable": 1,
       "filterable": 0,
       "changeable": 0,
-      "ext": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/alitoken.txt"
+      "ext": "188320c0d79f439ea8b34a73469083af"
     },
     {
       "key": "找资源",
@@ -59,7 +59,7 @@
       "searchable": 1,
       "filterable": 0,
       "changeable": 0,
-      "ext": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/alitoken.txt$$$yingshi$$$abcd1234"
+      "ext": "188320c0d79f439ea8b34a73469083af$$$yingshi$$$abcd1234"
     },
     {
       "key": "push_agent",
