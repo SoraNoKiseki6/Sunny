@@ -1,7 +1,7 @@
 {
         "urls": [
         {
-            "url": "https://gh-proxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/fantaiying.json",
+            "url": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/fantaiying.json",
             "name": "🎉饭太硬线路"
         },
         {
@@ -9,7 +9,7 @@
             "name": "🚀肥猫线路"
         },
         {
-            "url": "https://gh-proxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/config.json",
+            "url": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/config.json",
             "name": "🚀阿里专线"
         }
     ]
