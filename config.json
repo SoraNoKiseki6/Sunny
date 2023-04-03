@@ -19,7 +19,7 @@
       "searchable": 1,
       "filterable": 1,
       "changeable": 0,
-      "ext": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/token.txt"
+      "ext": "https://gh-proxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/token.txt"
     },
     {
       "key": "易搜",
@@ -29,7 +29,7 @@
       "searchable": 1,
       "filterable": 0,
       "changeable": 0,
-      "ext": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/token.txt"
+      "ext": "https://gh-proxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/token.txt"
     },
     {
       "key": "盘搜",
@@ -39,7 +39,7 @@
       "searchable": 1,
       "filterable": 0,
       "changeable": 0,
-      "ext": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/token.txt"
+      "ext": "https://gh-proxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/token.txt"
     },
     {
       "key": "云搜",
@@ -49,7 +49,7 @@
       "searchable": 1,
       "filterable": 0,
       "changeable": 0,
-      "ext": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/token.txt"
+      "ext": "https://gh-proxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/token.txt"
     },
     {
       "key": "找资源",
@@ -59,7 +59,7 @@
       "searchable": 1,
       "filterable": 0,
       "changeable": 0,
-      "ext": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/token.txt$$$yingshi$$$abcd1234"
+      "ext": "https://gh-proxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/token.txt$$$yingshi$$$abcd1234"
     },
     {
       "key": "push_agent",
@@ -69,7 +69,7 @@
       "searchable": 1,
       "filterable": 0,
       "changeable": 0,
-      "ext": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/token.txt"
+      "ext": "https://gh-proxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/token.txt"
     }
   ]
 }
