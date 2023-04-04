@@ -11,6 +11,10 @@
         {
             "url": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/config.json",
             "name": "🚀阿里专线"
+        },
+        {
+            "url": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Alex/main/ceshi.json",
+            "name": "测试线路"
         }
     ]
 }
