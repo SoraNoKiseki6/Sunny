@@ -1,5 +1,5 @@
 {
-    "spider": "https://files.zohopublic.com.cn/public/workdrive-public/download/uyv0t678c488189af47bb91dc108484d17431;md5;2648825eee03cb548b2c411002a7aad9",
+    "spider": "https://files.zohopublic.com.cn/public/workdrive-public/download/uyv0t678c488189af47bb91dc108484d17431;md5;1283f666a6cad6c58530d7f2d5eef333",
     "wallpaper": "http://饭太硬.top/深色壁纸/api.php",
     "sites": [
         {
@@ -37,7 +37,7 @@
         },
         {
             "key": "Biliych",
-            "name": "🅱哔哔┃演唱会",
+            "name": "🅱哔哔┃歌曲",
             "type": 3,
             "api": "csp_Bili",
             "style": {
@@ -48,6 +48,19 @@
             "quickSearch": 0,
             "changeable": 0,
             "ext": "https://agit.ai/fantaiying/fty/raw/branch/master/json/biliych.json"
+        },
+        {
+            "key": "Aid",
+            "name": "🚑急救┃教学",
+            "type": 3,
+            "api": "csp_FirstAid",
+            "searchable": 0,
+            "quickSearch": 0,
+            "changeable": 0,
+            "style": {
+                "type": "rect",
+                "ratio": 3.8
+            }
         },
         {
             "key": "YGP",
@@ -99,6 +112,64 @@
             "changeable": 1
         },
         {
+            "key": "毛驴",
+            "name": "🍓毛驴┃App",
+            "type": 3,
+            "api": "csp_MLYS",
+            "searchable": 1,
+            "quickSearch": 1,
+            "changeable": 1,
+            "ext": "https://www.maolvys.com/"
+        },
+        {
+            "key": "蚂蚁",
+            "name": "🐜蚂蚁┃直连",
+            "type": 3,
+            "api": "csp_MYYS",
+            "searchable": 1,
+            "quickSearch": 1,
+            "filterable": 0,
+            "ext": "http://rzys.xyz"
+        },
+        {
+            "key": "率率",
+            "name": "💡率率┃直连",
+            "type": 1,
+            "api": "https://suoniapi.com/api.php/provide/vod/?ac=list",
+            "searchable": 1,
+            "quickSearch": 1,
+            "changeable": 1,
+            "categories": [
+                "国产剧",
+                "韩剧",
+                "日剧",
+                "港剧",
+                "台剧",
+                "动作片",
+                "喜剧片",
+                "爱情片",
+                "科幻片",
+                "战争片",
+                "恐怖片",
+                "剧情片",
+                "国产动漫",
+                "日韩动漫",
+                "欧美动漫",
+                "大陆综艺",
+                "日韩综艺"
+            ]
+        },
+        {
+            "key": "Xinsj",
+            "name": "👓视觉┃直连",
+            "type": 3,
+            "api": "csp_Xinsj",
+            "searchable": 1,
+            "quickSearch": 1,
+            "changeable": 1,
+            "ext": "https://www.6080yy3.com/"
+        },
+        {
             "key": "Auete",
             "name": "🏝奥特┃直连",
             "type": 3,
@@ -106,16 +177,6 @@
             "searchable": 1,
             "quickSearch": 1,
             "changeable": 1
-        },
-        {
-            "key": "蚂蚁",
-            "name": "🐜蚂蚁┃直连",
-            "type": 3,
-            "api": "csp_Mayiys",
-            "searchable": 1,
-            "quickSearch": 1,
-            "filterable": 0,
-            "ext": "http://rzys.xyz"
         },
         {
             "key": "zxzj",
@@ -126,6 +187,25 @@
             "quickSearch": 1,
             "changeable": 1,
             "ext": "https://www.zxzj.pro/"
+        },
+        {
+            "key": "csp_Bttoo",
+            "name": "🍄比特┃直连",
+            "type": 3,
+            "api": "csp_Bttwoo",
+            "searchable": 1,
+            "quickSearch": 1,
+            "filterable": 1
+        },
+        {
+            "key": "Lib",
+            "name": "🌟利播┃直连",
+            "type": 3,
+            "api": "csp_Libvio",
+            "searchable": 1,
+            "quickSearch": 1,
+            "changeable": 1,
+            "ext": "https://www.libvio.pro/"
         },
         {
             "key": "贱贱",
@@ -160,26 +240,6 @@
             "ext": "http://www.miniku.cc/xgapp.php/v1/"
         },
         {
-            "key": "陌陌",
-            "name": "🍄陌陌┃App",
-            "type": 3,
-            "api": "csp_AppYsV2",
-            "searchable": 1,
-            "quickSearch": 1,
-            "changeable": 1,
-            "ext": "https://www.kuin.one/api.php/app/"
-        },
-        {
-            "key": "奇奇",
-            "name": "🍓奇奇┃App",
-            "type": 3,
-            "api": "csp_AppYsV2",
-            "searchable": 1,
-            "quickSearch": 1,
-            "changeable": 1,
-            "ext": "http://mp4.ghlyys.com/api.php/app/"
-        },
-        {
             "key": "DiDuan",
             "name": "⏮️低端┃直连",
             "type": 3,
@@ -198,6 +258,26 @@
             "changeable": 1
         },
         {
+            "key": "csp_Nmys",
+            "name": "🌾农民┃直连",
+            "type": 3,
+            "api": "csp_Nmys",
+            "searchable": 1,
+            "quickSearch": 1,
+            "changeable": 1,
+            "ext": "https://agit.ai/fantaiying/fty/raw/branch/master/json/nmys.json"
+        },
+        {
+            "key": "Cokemv",
+            "name": "📕可乐┃直连",
+            "type": 3,
+            "api": "csp_Cokemv",
+            "playerType": 2,
+            "searchable": 1,
+            "quickSearch": 1,
+            "changeable": 1
+        },
+        {
             "key": "Vofl",
             "name": "🎈VOF┃直连",
             "type": 3,
@@ -205,26 +285,6 @@
             "searchable": 1,
             "quickSearch": 1,
             "changeable": 1
-        },
-        {
-            "key": "Lib",
-            "name": "🌟利播┃直连",
-            "type": 3,
-            "api": "csp_Libvio",
-            "searchable": 1,
-            "quickSearch": 1,
-            "changeable": 1,
-            "ext": "https://www.libvio.pro/"
-        },
-        {
-            "key": "Xinsj",
-            "name": "👓视觉┃直连",
-            "type": 3,
-            "api": "csp_Xinsj",
-            "searchable": 1,
-            "quickSearch": 1,
-            "changeable": 1,
-            "ext": "https://www.6080yy3.com/"
         },
         {
             "key": "kuaikan",
@@ -243,37 +303,6 @@
             "searchable": 1,
             "quickSearch": 1,
             "changeable": 1
-        },
-        {
-            "key": "YQKAPP",
-            "name": "🎉一起┃App",
-            "type": 3,
-            "api": "csp_YQKAPP",
-            "playerType": 2,
-            "searchable": 1,
-            "quickSearch": 1,
-            "changeable": 1,
-            "ext": "https://api-aws.11ty.top"
-        },
-        {
-            "key": "Cokemv",
-            "name": "📕可乐┃直连",
-            "type": 3,
-            "api": "csp_Cokemv",
-            "playerType": 2,
-            "searchable": 1,
-            "quickSearch": 1,
-            "changeable": 1
-        },
-        {
-            "key": "csp_Nmys",
-            "name": "🌾农民┃直连",
-            "type": 3,
-            "api": "csp_Nmys",
-            "searchable": 1,
-            "quickSearch": 1,
-            "changeable": 1,
-            "ext": "https://agit.ai/fantaiying/fty/raw/branch/master/json/nmys.json"
         },
         {
             "key": "csp_Ysgc",
