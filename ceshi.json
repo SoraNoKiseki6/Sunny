@@ -4,7 +4,7 @@
     "sites": [
         {
             "key": "豆豆",
-            "name": "🌕公众号【神秘的哥哥们】",
+            "name": "🍥豆瓣┃热播🍥",
             "type": 3,
             "api": "csp_DouDou",
             "searchable": 0,
@@ -19,7 +19,7 @@
             "searchable": 1,
             "quickSearch": 1,
             "changeable": 0,
-            "ext": "http://127.0.0.1:9978/file/tvfan/token.txt+4k|auto|fhd$$$弹"
+            "ext": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/token.txt+4k|auto|fhd$$$弹"
         },
         {
             "key": "YGP",
@@ -498,7 +498,7 @@
             "searchable": 1,
             "quickSearch": 1,
             "changeable": 0,
-            "ext": "http://127.0.0.1:9978/file/tvfan/token.txt+4k|auto|fhd"
+            "ext": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/token.txt+4k|auto|fhd"
         },
         {
             "key": "Zhaozy",
@@ -508,7 +508,7 @@
             "searchable": 1,
             "quickSearch": 1,
             "changeable": 0,
-            "ext": "http://127.0.0.1:9978/file/tvfan/token.txt+4k|auto|fhd$$$fanty$$$qqq111"
+            "ext": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/token.txt+4k|auto|fhd$$$fanty$$$qqq111"
         },
         {
             "key": "PanSou",
@@ -518,7 +518,7 @@
             "searchable": 1,
             "quickSearch": 1,
             "changeable": 0,
-            "ext": "http://127.0.0.1:9978/file/tvfan/token.txt+4k|auto|fhd"
+            "ext": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/token.txt+4k|auto|fhd"
         },
         {
             "key": "UpYun",
@@ -528,7 +528,7 @@
             "searchable": 1,
             "quickSearch": 1,
             "changeable": 0,
-            "ext": "http://127.0.0.1:9978/file/tvfan/token.txt+4k|auto|fhd"
+            "ext": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/token.txt+4k|auto|fhd"
         },
         {
             "key": "PanSearch",
@@ -538,7 +538,7 @@
             "searchable": 1,
             "quickSearch": 1,
             "changeable": 0,
-            "ext": "http://127.0.0.1:9978/file/tvfan/token.txt+4k|auto|fhd"
+            "ext": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/token.txt+4k|auto|fhd"
         },
         {
             "key": "七夜",
@@ -548,7 +548,7 @@
             "searchable": 1,
             "quickSearch": 1,
             "changeable": 0,
-            "ext": "http://127.0.0.1:9978/file/tvfan/token.txt+4k|auto|fhd"
+            "ext": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/token.txt+4k|auto|fhd"
         },
         {
             "key": "push_agent",
@@ -557,7 +557,7 @@
             "api": "csp_Push",
             "searchable": 0,
             "quickSearch": 0,
-            "ext": "http://127.0.0.1:9978/file/tvfan/token.txt+4k|auto|fhd"
+            "ext": "https://ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/token.txt+4k|auto|fhd"
         },
         {
             "key": "csp_Nbys",
