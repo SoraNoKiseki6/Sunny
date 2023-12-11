@@ -1,5 +1,5 @@
 {
-    "spider": "https://files.zohopublic.com.cn/public/workdrive-public/download/uyv0t678c488189af47bb91dc108484d17431;md5;1f0e88109bb95259af59e52bd5f9ffb4",
+    "spider": "https://files.zohopublic.com.cn/public/workdrive-public/download/uyv0t678c488189af47bb91dc108484d17431;md5;7f5b55c37dba231f3862cd1a8c8ea932",
     "wallpaper": "http://饭太硬.top/深色壁纸/api.php",
     "sites": [
         {
@@ -39,7 +39,7 @@
             "searchable": 1,
             "quickSearch": 1,
             "changeable": 1,
-            "ext": "https://czz9.com/"
+            "ext": "https://www.czzy33.com/"
         },
         {
             "key": "橘子",
@@ -211,7 +211,7 @@
         },
         {
             "key": "csp_Bttoo",
-            "name": "🍄比特┃直连",
+            "name": "🍄比特┃�连",
             "type": 3,
             "api": "csp_Bttwoo",
             "searchable": 1,
