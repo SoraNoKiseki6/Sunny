@@ -2,6 +2,8 @@
 CCTV1,http://111.207.22.10:8888/newlive/live/hls/2/live.m3u8
 CCTV1,http://101.71.176.182:8888/newlive/live/hls/2/live.m3u8
 CCTV1,https://node1.olelive.com:6443/live/CCTV1HD/hls.m3u8
+CCTV8,https://node1.olelive.com:6443/live/CCTV8HD/hls.m3u8
+CCTV9,https://node1.olelive.com:6443/live/CCTV9HD/hls.m3u8
 CCTV13,https://live-play.cctvnews.cctv.com/cctv/merge_cctv13.m3u8?auth_key=1635962688
 卫视频道,#genre#
 地方频道,#genre#
