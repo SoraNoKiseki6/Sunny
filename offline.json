@@ -9,6 +9,10 @@
             "name": "饭太硬线路"
         },
         {
+            "url": "http://肥猫.live",
+            "name": "肥猫线路"
+        },
+        {
             "url": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/ceshi.json",
             "name": "测试线路（平时勿选）"
         }
