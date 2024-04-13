@@ -11,7 +11,7 @@ sites:[
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1,
-       "ext":"socks5://127.0.0.1:10072",
+       "ext":"http://localhost:6666",
       "style": {"type": "rect","ratio": 1.597
             },
             "jar": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/xc0126.jar"
