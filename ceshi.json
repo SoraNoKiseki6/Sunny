@@ -14,7 +14,7 @@ sites:[
        "ext":"http://localhost:6666",
       "style": {"type": "rect","ratio": 1.597
             },
-            "jar": "./jar/xc0126.jar"
+            "jar": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/xc0126.jar"
     },
 {"key":"玩偶","name":"👽玩偶哥哥┃4K弹幕","type":3,"api":"csp_WoGG","searchable":1,"quickSearch":1,"changeable":0, "ext": {"aliToken":"https://mirror.ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/token.txt","quarkCookie":"tvfan/cookie.txt","from":"4k|auto|fhd","siteUrl":"https://api.wogg.xyz/","danMu":"弹"}},
 {"key":"YGP","name":"🚀叨观荐影┃新片","type":3,"api":"csp_YGP","searchable":0,"quickSearch":0,"changeable":0},
