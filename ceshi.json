@@ -88,12 +88,12 @@ moreData:[
                     "url":"http://m.v.qq.com/"
                 },
                 {
-                    "name":"优酷",
-                    "enabled":false,
-                    "type":4,
+                    "name":"supjav",
+                    "enabled":true,
+                    "type":3,
                     "analysis":true,
-                    "icon":"http://wp.xn--yi7aa.top:3102/view.php/02401b7d2d2ef9da4ff655c252bc58f1.webp",
-                    "url":"http://tv.youku.com/"
+                    "icon":"https://supjav.com/img/logo.png",
+                    "url":"https://supjav.com/zh/"
                 },
                 {
                     "name":"芒果TV",
