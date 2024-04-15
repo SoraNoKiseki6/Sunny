@@ -90,7 +90,7 @@ moreData:[
                 {
                     "name":"supjav",
                     "enabled":true,
-                    "type":3,
+                    "type":4,
                     "analysis":true,
                     "icon":"https://supjav.com/img/logo.png",
                     "url":"https://supjav.com/zh/"
