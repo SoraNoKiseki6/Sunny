@@ -20,13 +20,19 @@
             "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
             "logo": "https://live.fanmingming.com/tv/{name}.png"
        	},
-	{
+		{
             "name": "Guovin",
             "type": 0,
             "url": "https://ghproxy.net/raw.githubusercontent.com/Guovin/TV/gd/result.txt",
             "ua": "okhttp/3.15",
             "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
             "logo": "https://live.fanmingming.com/tv/{name}.png"
-       	}
+       	},
+	 	{
+            "name": "我的",
+            "url": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/live.txt",
+            "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
+			"logo": "https://live.fanmingming.com/tv/{name}.png"
+        }
     ]
 }
