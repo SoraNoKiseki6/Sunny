@@ -19,7 +19,7 @@
             "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
             "logo": "https://live.fanmingming.com/tv/{name}.png"
        	},
-	    {
+	{
             "name": "Guovin",
             "type": 0,
             "url": "https://ghproxy.net/raw.githubusercontent.com/Guovin/TV/gd/result.txt",
