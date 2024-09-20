@@ -9,7 +9,7 @@
         },
         {
             "name": "咪咕直播2",
-            "url": "https://down.nigx.cn/json.doube.eu.org/live/migu/Sub.php",
+            "url": "https://json.doube.eu.org/live/migu/Sub.php",
             "epg": "https://down.nigx.cn/epg.112114.xyz/?ch={name}&date={date}"
         },
        	{
