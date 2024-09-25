@@ -153,7 +153,7 @@
             "type_id": "Windows"
         }
     ],
-    "cookie": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/cookie.txt",
+    "cookie": "https://ghp.ci/https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/cookie.txt",
     "filter": {
         "考公考证": [
             {
