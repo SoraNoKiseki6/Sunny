@@ -6,7 +6,7 @@ log-level: info
 external-controller: 127.0.0.1:9090
 proxies:
   - {name: Koyeb, server: 172.64.104.1, port: 443, type: vmess, uuid: 5ee5f222-f3b3-4f6a-b3ac-83b7c71a0212, alterId: 0, cipher: auto, tls: true, servername: letgo.soranokiseki.v6.army, network: ws, ws-opts: {path: /5ee5f222-f3b3-4f6a-b3ac-83b7c71a0212-vmess, headers: {Host: letgo.soranokiseki.v6.army}}}
-  - {name: Koyeb1, server: 172.64.172.11, port: 443, type: vmess, uuid: 5ee5f222-f3b3-4f6a-b3ac-83b7c71a0212, alterId: 0, cipher: auto, tls: true, servername: letgo.soranokiseki.v6.army, network: ws, ws-opts: {path: /5ee5f222-f3b3-4f6a-b3ac-83b7c71a0212-vmess, headers: {Host: letgo.soranokiseki.v6.army}}}
+  - {name: Koyeb1, server: 116.204.210.10, port: 443, type: vmess, uuid: 5ee5f222-f3b3-4f6a-b3ac-83b7c71a0212, alterId: 0, cipher: auto, tls: true, servername: letgo.soranokiseki.v6.army, network: ws, ws-opts: {path: /5ee5f222-f3b3-4f6a-b3ac-83b7c71a0212-vmess, headers: {Host: letgo.soranokiseki.v6.army}}}
 proxy-groups:
   - name: 🚀 节点选择
     type: select
