@@ -7,12 +7,6 @@
             "epg": "https://down.nigx.cn/epg.112114.xyz/?ch={name}&date={date}",
 	    "logo": "https://down.nigx.cn/epg.112114.xyz/logo/{name}.png"
         },
-        {
-            "name": "咪咕直播2",
-            "url": "https://gh-proxy.com/https://raw.githubusercontent.com/lyr22/bz/refs/heads/main/v4mu",
-            "epg": "https://down.nigx.cn/epg.112114.xyz/?ch={name}&date={date}",
-	    "logo": "https://down.nigx.cn/epg.112114.xyz/logo/{name}.png"
-        },
        	{
             "name": "摸鱼",
             "type": 0,
