@@ -1,5 +1,23 @@
 {
   "spider": "https://afan888.soranokiseki.us.kg/https://github.com/FongMi/CatVodSpider/raw/main/jar/custom_spider.jar",
+  "wallpaper": "http://饭太硬.top/深色壁纸/api.php",
+  "lives": [
+    {
+      "name": "XtreamCode",
+      "api": "csp_XtreamCode",
+      "url": "http://iptv.icsnleb.com:25461/player_api.php?username=12&password=12",
+      "epg": "http://iptv.icsnleb.com:25461/xmltv.php?username=12&password=12",
+      "type": 3,
+      "ext": {
+        "live": true,
+        "vod": true,
+        "formats": [
+          "m3u8",
+          "ts"
+        ]
+      }
+    }
+  ],
   "sites": [
     {
       "key": "本地",
@@ -8,6 +26,15 @@
       "api": "csp_Local",
       "searchable": 0,
       "changeable": 0
+    },
+    {
+      "key": "商店",
+      "name": "商店",
+      "type": 3,
+      "api": "csp_Market",
+      "searchable": 0,
+      "changeable": 0,
+      "ext": "./json/market.json"
     },
     {
       "key": "push_agent",
@@ -63,13 +90,10 @@
       ]
     }
   ],
+  "proxy": [
+    ".*."
+  ],
   "rules": [
-    {
-      "name": "proxy",
-      "hosts": [
-        ".*."
-      ]
-    },
     {
       "name": "火山嗅探",
       "hosts": [
