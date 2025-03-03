@@ -13,14 +13,6 @@
             "epg": "https://down.nigx.cn/epg.112114.xyz/?ch={name}&date={date}",
 	    "logo": "https://down.nigx.cn/epg.112114.xyz/logo/{name}.png"
         },
-       	{
-            "name": "摸鱼",
-            "type": 0,
-            "url": "http://我不是.摸鱼儿.top/live.php",
-            "ua": "okhttp/3.15",
-            "epg": "https://down.nigx.cn/epg.112114.xyz/?ch={name}&date={date}",
-            "logo": "https://down.nigx.cn/epg.112114.xyz/logo/{name}.png"
-       	},
 	{
             "name": "Guovin",
             "type": 0,
@@ -30,10 +22,10 @@
             "logo": "https://live.fanmingming.com/tv/{name}.png"
        	},
 	{
-            "name": "我的",
-            "url": "https://afan888.soranokiseki.us.kg/https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/iptv.txt",
-            "epg": "https://down.nigx.cn/epg.112114.xyz/?ch={name}&date={date}",
-	    "logo": "https://live.fanmingming.com/tv/{name}.png"
-        }
+            "name": "平台直播",
+            "type": 0,
+            "url": "http://tv.iill.top/m3u/Live",
+            "ua": "okhttp/3.15"
+       	}
     ]
 }
