@@ -4,6 +4,7 @@
 // @version      1.0.6
 // @description  连续刷新 n 次并测量刷新触发到脚本执行的耗时，支持持久化测试次数与间隔，仅匹配 pro.m.jd.com/* 。
 // @match        https://pro.m.jd.com/*
+// @match        https://prodev.m.jd.com/*
 // @grant        GM_registerMenuCommand
 // @grant        GM_setValue
 // @grant        GM_getValue
