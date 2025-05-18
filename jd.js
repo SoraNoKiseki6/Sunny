@@ -4,6 +4,7 @@
 // @version      1.1.1
 // @description  多按钮记录、定时刷新后点击、循环抢券、即时生效设置、真实测试功能、ESC 终止，灰色/嵌套按钮可识别。
 // @match        https://pro.m.jd.com/*
+// @match        https://prodev.m.jd.com/*
 // @grant        none
 // ==/UserScript==
 
