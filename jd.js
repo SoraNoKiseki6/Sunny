@@ -28,11 +28,11 @@ const SEL_KEY    = `JD_SELECTORS_${taskTag}`;
 const CFG_KEY    = `JD_CFG_${taskTag}`;
 const defaults = {
     scheduleTime:  '10:00:00',
-    advanceMs:     200,
-    clickCount:    3,
+    advanceMs:     800,
+    clickCount:    5,
     clickInterval: 100,
-    refreshDelay:  200,
-    buttonLimit:   4,
+    refreshDelay:  100,
+    buttonLimit:   1,
     dianMode:      false
 };
 
