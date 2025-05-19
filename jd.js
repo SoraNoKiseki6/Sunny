@@ -7,6 +7,8 @@
 // @match        https://prodev.m.jd.com/*
 // @match        https://h5static.m.jd.com/*
 // @grant        none
+// @updateURL   https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/jd.js
+// @downloadURL https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/jd.js
 // ==/UserScript==
 
 (function(){
