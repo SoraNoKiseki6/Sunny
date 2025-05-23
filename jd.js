@@ -1,48 +1,40 @@
 // ==UserScript==
-// @name         JD 抢券大师（多标签独立任务版 v1.3.0）
+// @name         JD 抢券大师（完整修订版 v1.2.1）
 // @namespace    http://tampermonkey.net/
-// @version      1.3.0
-// @description  每个标签页自动生成独立任务，互不冲突；支持多券抢购、自动刷新+点击、测试模式、点亮版模式，ESC 停止等；兼容嵌套/灰色按钮。
-// @updateURL   https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/jd.js
-// @downloadURL https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/jd.js
+// @version      1.2.1
+// @description  多按钮记录、定时刷新后点击、循环抢券、即时生效设置、真实测试功能、ESC 终止，灰色/嵌套按钮可识别。新增“点亮版”模式：在点亮版页面可在设定时间（减提前刷新延迟）直接启动点击-刷新循环。支持 pro、prodev 与 h5static 域名。
 // @match        https://pro.m.jd.com/*
 // @match        https://prodev.m.jd.com/*
 // @match        https://h5static.m.jd.com/*
 // @grant        none
+// @updateURL   https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/jd.js
+// @downloadURL https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/jd.js
 // ==/UserScript==
 
 (function(){
 'use strict';
 
-// —— 自动生成标签页唯一标识 ——（sessionStorage 保证同一标签页内固定、关闭失效）
-let taskTag = sessionStorage.getItem('jd_unique_task_id');
-if (!taskTag) {
-    taskTag = 'task_' + Math.random().toString(36).substr(2, 9);
-    sessionStorage.setItem('jd_unique_task_id', taskTag);
-}
-console.log(`[JD抢券] 当前任务标识: ${taskTag}`);
-
-// —— 存储 Key & 默认设置 ——（带任务标识）
-const FLAG_KEY   = `JD_CLICK_FLAG_${taskTag}`;
-const SEL_KEY    = `JD_SELECTORS_${taskTag}`;
-const CFG_KEY    = `JD_CFG_${taskTag}`;
+// —— 存储 Key & 默认设置 ——
+const FLAG_KEY   = 'JD_CLICK_FLAG';
+const SEL_KEY    = 'JD_SELECTORS';
+const CFG_KEY    = 'JD_CFG';
 const defaults = {
     scheduleTime:  '10:00:00',
-    advanceMs:     800,
-    clickCount:    5,
+    advanceMs:     200,
+    clickCount:    3,
     clickInterval: 100,
-    refreshDelay:  100,
-    buttonLimit:   1,
-    dianMode:      false
+    refreshDelay:  200,
+    buttonLimit:   4,
+    dianMode:      false    // 点亮版模式开关
 };
 
-// —— 加载配置 & 按钮列表 ——（每标签页独立）
+// —— 加载/保存 配置 & 选择器列表 ——
 let cfg = Object.assign({}, defaults, JSON.parse(localStorage.getItem(CFG_KEY) || '{}'));
 let selectors = JSON.parse(localStorage.getItem(SEL_KEY) || '[]');
 function saveCfg() { localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); }
 function saveSel() { localStorage.setItem(SEL_KEY, JSON.stringify(selectors)); }
 
-// —— 唯一路径获取 ——（支持嵌套按钮定位）
+// —— 生成唯一 DOM 路径 ——
 function getDomPath(el){
     if(!(el instanceof Element)) return '';
     const stack = [];
@@ -60,7 +52,7 @@ function queryByPath(path){
     catch{ return null; }
 }
 
-// —— 判断点亮页面 ——（带 .dianliang-indicator 或链接中含 'dianliang'）
+// —— 判定点亮版页面 ——
 function isDianliangPage(){
     return cfg.dianMode && (
         location.href.includes('dianliang') ||
@@ -68,13 +60,13 @@ function isDianliangPage(){
     );
 }
 
-// —— 创建设置面板 ——（带任务名）
+// —— 创建设置面板 ——
 const panel = document.createElement('div');
 panel.id = 'jd-settings-panel';
 panel.style = 'position:fixed;top:10px;right:10px;z-index:9999;' +
               'background:#fff;border:1px solid #333;padding:10px;font-size:12px;';
 panel.innerHTML = `
-    <div><b>JD 抢券大师</b>（任务：<code>${taskTag}</code>）</div>
+    <div><b>JD 抢券大师</b></div>
     <div>时间 <input id="in-time"      value="${cfg.scheduleTime}"    style="width:70px"></div>
     <div>提前刷新 <input id="in-adv"   type="number" value="${cfg.advanceMs}"      style="width:50px"> ms</div>
     <div>点击次数 <input id="in-ct"     type="number" value="${cfg.clickCount}"     style="width:30px"></div>
@@ -96,7 +88,7 @@ panel.innerHTML = `
 `;
 document.body.appendChild(panel);
 
-// —— 设置立即生效 —— 
+// —— 设置即时生效 ——
 function applySettings(){
     cfg.scheduleTime   = document.getElementById('in-time').value;
     cfg.advanceMs      = parseInt(document.getElementById('in-adv').value)||0;
@@ -106,20 +98,29 @@ function applySettings(){
     cfg.buttonLimit    = parseInt(document.getElementById('in-bl').value)||1;
     cfg.dianMode       = document.getElementById('in-dian').checked;
     saveCfg();
+    // —— 重新调度 ——
     if(reloadTimerId) clearTimeout(reloadTimerId);
     scheduleProcess();
     alert('设置已保存并立即生效');
 }
 document.getElementById('btn-save').onclick = applySettings;
-document.getElementById('in-dian').addEventListener('change', ()=>{ cfg.dianMode = document.getElementById('in-dian').checked; saveCfg(); });
-document.getElementById('btn-clear').onclick = ()=>{ selectors = []; saveSel(); alert('已清除所有按钮记录'); };
+// —— 点亮版模式立即存储 ——
+document.getElementById('in-dian').addEventListener('change', ()=>{
+    cfg.dianMode = document.getElementById('in-dian').checked;
+    saveCfg();
+});
+document.getElementById('btn-clear').onclick = ()=>{
+    selectors = [];
+    saveSel();
+    alert('已清除所有按钮记录');
+};
 
-// —— 面板内不记录 —— 
+// —— 面板内不记录按钮 ——
 let canRecord = true;
 panel.addEventListener('mouseenter', ()=>canRecord=false);
 panel.addEventListener('mouseleave', ()=>canRecord=true);
 
-// —— 点击记录按钮 —— 
+// —— 手动点击记录 ——
 document.addEventListener('click', e=>{
     if(!canRecord) return;
     if(selectors.length>=cfg.buttonLimit) return;
@@ -131,7 +132,7 @@ document.addEventListener('click', e=>{
     }
 }, true);
 
-// —— 测试按钮 —— 
+// —— 测试按钮识别 ——
 document.getElementById('btn-test1').onclick = ()=>{
     if(!selectors.length) return alert('未记录按钮');
     selectors.forEach((p,i)=>{
@@ -141,7 +142,7 @@ document.getElementById('btn-test1').onclick = ()=>{
     });
 };
 
-// —— 测试流程 —— 
+// —— 测试整体流程（支持点亮版与普通模式） ——
 document.getElementById('btn-test2').onclick = ()=>{
     if(!selectors.length) return alert('未记录按钮');
     if(isDianliangPage()){
@@ -153,7 +154,7 @@ document.getElementById('btn-test2').onclick = ()=>{
     }
 };
 
-// —— 定时任务调度 —— 
+// —— 定时流程调度 ——
 let reloadTimerId = null;
 function scheduleProcess(){
     const [hh,mm,ss] = cfg.scheduleTime.split(':').map(Number);
@@ -172,7 +173,7 @@ function scheduleProcess(){
     }, delay);
 }
 
-// —— 循环点击主流程 —— 
+// —— 循环点击 ——
 let stopped = false;
 async function runClickLoop(){
     stopped = false;
@@ -196,7 +197,6 @@ async function runClickLoop(){
     }
 }
 
-// —— ESC 停止 —— 
 document.addEventListener('keydown', e=>{
     if(e.key==='Escape'){
         stopped=true;
@@ -205,7 +205,7 @@ document.addEventListener('keydown', e=>{
     }
 });
 
-// —— 入口 —— 
+// —— 页面入口 ——
 if(sessionStorage.getItem(FLAG_KEY) === '1'){
     sessionStorage.removeItem(FLAG_KEY);
     runClickLoop();
