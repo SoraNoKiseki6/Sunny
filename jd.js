@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         JD 抢券大师（完整修订版 v1.2.1）
+// @name         JD 抢券大师（真实点击 v1.2.1）
 // @namespace    http://tampermonkey.net/
 // @version      1.2.1
 // @description  多按钮记录、定时刷新后点击、循环抢券、即时生效设置、真实测试功能、ESC 终止，灰色/嵌套按钮可识别。新增“点亮版”模式：在点亮版页面可在设定时间（减提前刷新延迟）直接启动点击-刷新循环。支持 pro、prodev 与 h5static 域名。
@@ -25,7 +25,7 @@ const defaults = {
     clickInterval: 100,
     refreshDelay:  200,
     buttonLimit:   4,
-    dianMode:      false    // 点亮版模式开关
+    dianMode:      false
 };
 
 // —— 加载/保存 配置 & 选择器列表 ——
@@ -98,13 +98,11 @@ function applySettings(){
     cfg.buttonLimit    = parseInt(document.getElementById('in-bl').value)||1;
     cfg.dianMode       = document.getElementById('in-dian').checked;
     saveCfg();
-    // —— 重新调度 ——
     if(reloadTimerId) clearTimeout(reloadTimerId);
     scheduleProcess();
     alert('设置已保存并立即生效');
 }
 document.getElementById('btn-save').onclick = applySettings;
-// —— 点亮版模式立即存储 ——
 document.getElementById('in-dian').addEventListener('change', ()=>{
     cfg.dianMode = document.getElementById('in-dian').checked;
     saveCfg();
@@ -137,12 +135,12 @@ document.getElementById('btn-test1').onclick = ()=>{
     if(!selectors.length) return alert('未记录按钮');
     selectors.forEach((p,i)=>{
         const el = queryByPath(p);
-        if(el){ el.click(); console.log(`[测试1]点击第${i+1}按钮:${p}`); }
+        if(el){ simulateRealClick(el); console.log(`[测试1]点击第${i+1}按钮:${p}`); }
         else console.warn(`[测试1]未找到第${i+1}按钮:${p}`);
     });
 };
 
-// —— 测试整体流程（支持点亮版与普通模式） ——
+// —— 测试整体流程 ——
 document.getElementById('btn-test2').onclick = ()=>{
     if(!selectors.length) return alert('未记录按钮');
     if(isDianliangPage()){
@@ -154,7 +152,7 @@ document.getElementById('btn-test2').onclick = ()=>{
     }
 };
 
-// —— 定时流程调度 ——
+// —— 定时调度 ——
 let reloadTimerId = null;
 function scheduleProcess(){
     const [hh,mm,ss] = cfg.scheduleTime.split(':').map(Number);
@@ -173,7 +171,22 @@ function scheduleProcess(){
     }, delay);
 }
 
-// —— 循环点击 ——
+// ✅ —— 模拟真实用户点击（替代 .click()） ——
+function simulateRealClick(el){
+    const rect = el.getBoundingClientRect();
+    ['mouseover','mousedown','mouseup','click'].forEach(type=>{
+        const evt = new MouseEvent(type, {
+            view: window,
+            bubbles: true,
+            cancelable: true,
+            clientX: rect.left + rect.width / 2,
+            clientY: rect.top + rect.height / 2
+        });
+        el.dispatchEvent(evt);
+    });
+}
+
+// —— 点击循环 ——
 let stopped = false;
 async function runClickLoop(){
     stopped = false;
@@ -183,7 +196,7 @@ async function runClickLoop(){
         if(!el){ console.warn(`[流程]找不到按钮:${p}`); continue; }
         for(let i=0; i<cfg.clickCount; i++){
             if(stopped) return;
-            el.click();
+            simulateRealClick(el);
             await new Promise(r=>setTimeout(r, cfg.clickInterval));
         }
     }
