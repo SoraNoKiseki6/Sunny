@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         JD 抢券大师（真实点击 v1.2.1）
+// @name         JD 抢券大师（真实点击 v1.2.1-点亮增强）
 // @namespace    http://tampermonkey.net/
-// @version      1.2.1
-// @description  多按钮记录、定时刷新后点击、循环抢券、即时生效设置、真实测试功能、ESC 终止，灰色/嵌套按钮可识别。新增“点亮版”模式：在点亮版页面可在设定时间（减提前刷新延迟）直接启动点击-刷新循环。支持 pro、prodev 与 h5static 域名。
+// @version      1.2.1.1
+// @description  多按钮记录、定时刷新后点击、循环抢券、即时生效设置、真实测试功能、ESC 终止。新增点亮版模式：在设定时间按设置先点击再刷新循环执行。测试按钮可分别测试普通与点亮模式。支持 pro、prodev 与 h5static 域名。
 // @match        https://pro.m.jd.com/*
 // @match        https://prodev.m.jd.com/*
 // @match        https://h5static.m.jd.com/*
@@ -47,18 +47,7 @@ function getDomPath(el){
     }
     return stack.join(' > ');
 }
-function queryByPath(path){
-    try{ return document.querySelector(path); }
-    catch{ return null; }
-}
-
-// —— 判定点亮版页面 ——
-function isDianliangPage(){
-    return cfg.dianMode && (
-        location.href.includes('dianliang') ||
-        !!document.querySelector('.dianliang-indicator')
-    );
-}
+function queryByPath(path){ try{ return document.querySelector(path);}catch{return null;} }
 
 // —— 创建设置面板 ——
 const panel = document.createElement('div');
@@ -103,14 +92,8 @@ function applySettings(){
     alert('设置已保存并立即生效');
 }
 document.getElementById('btn-save').onclick = applySettings;
-document.getElementById('in-dian').addEventListener('change', ()=>{
-    cfg.dianMode = document.getElementById('in-dian').checked;
-    saveCfg();
-});
 document.getElementById('btn-clear').onclick = ()=>{
-    selectors = [];
-    saveSel();
-    alert('已清除所有按钮记录');
+    selectors = []; saveSel(); alert('已清除所有按钮记录');
 };
 
 // —— 面板内不记录按钮 ——
@@ -135,7 +118,7 @@ document.getElementById('btn-test1').onclick = ()=>{
     if(!selectors.length) return alert('未记录按钮');
     selectors.forEach((p,i)=>{
         const el = queryByPath(p);
-        if(el){ simulateRealClick(el); console.log(`[测试1]点击第${i+1}按钮:${p}`); }
+        if(el){ simulateRealClick(el); console.log(`[测试1]点击第${i+1}按钮:${p}`);}
         else console.warn(`[测试1]未找到第${i+1}按钮:${p}`);
     });
 };
@@ -143,10 +126,11 @@ document.getElementById('btn-test1').onclick = ()=>{
 // —— 测试整体流程 ——
 document.getElementById('btn-test2').onclick = ()=>{
     if(!selectors.length) return alert('未记录按钮');
-    if(isDianliangPage()){
-        alert('检测为点亮版页面，立即运行流程测试');
+    if(cfg.dianMode){
+        alert('点亮模式流程测试：先点击再循环刷新点击');
         runClickLoop();
     } else {
+        alert('普通模式流程测试：刷新后循环点击');
         sessionStorage.setItem(FLAG_KEY,'1');
         location.reload();
     }
@@ -160,9 +144,9 @@ function scheduleProcess(){
     const target = new Date(); target.setHours(hh,mm,ss,0);
     let delay = target.getTime() - now - cfg.advanceMs;
     if(delay < 0) delay += 86400000;
-    console.log(`[调度] ${delay}ms 后触发${isDianliangPage()? '点亮版流程':'刷新再点击流程'}`);
+    console.log(`[调度] ${delay}ms 后触发${cfg.dianMode? '点亮模式':'普通模式'}流程`);
     reloadTimerId = setTimeout(()=>{
-        if(isDianliangPage()){
+        if(cfg.dianMode){
             runClickLoop();
         } else {
             sessionStorage.setItem(FLAG_KEY,'1');
@@ -171,7 +155,7 @@ function scheduleProcess(){
     }, delay);
 }
 
-// ✅ —— 模拟真实用户点击（替代 .click()） ——
+// ✅ —— 模拟真实用户点击 ——
 function simulateRealClick(el){
     const rect = el.getBoundingClientRect();
     ['mouseover','mousedown','mouseup','click'].forEach(type=>{
@@ -179,8 +163,8 @@ function simulateRealClick(el){
             view: window,
             bubbles: true,
             cancelable: true,
-            clientX: rect.left + rect.width / 2,
-            clientY: rect.top + rect.height / 2
+            clientX: rect.left + rect.width/2,
+            clientY: rect.top + rect.height/2
         });
         el.dispatchEvent(evt);
     });
@@ -202,12 +186,8 @@ async function runClickLoop(){
     }
     if(stopped) return;
     await new Promise(r=>setTimeout(r, cfg.refreshDelay));
-    if(isDianliangPage()){
-        runClickLoop();
-    } else {
-        sessionStorage.setItem(FLAG_KEY,'1');
-        location.reload();
-    }
+    sessionStorage.setItem(FLAG_KEY,'1');
+    location.reload();
 }
 
 document.addEventListener('keydown', e=>{
@@ -219,7 +199,7 @@ document.addEventListener('keydown', e=>{
 });
 
 // —— 页面入口 ——
-if(sessionStorage.getItem(FLAG_KEY) === '1'){
+if(sessionStorage.getItem(FLAG_KEY)==='1'){
     sessionStorage.removeItem(FLAG_KEY);
     runClickLoop();
 } else {
