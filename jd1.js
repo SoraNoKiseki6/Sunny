@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         JD 抢券大师（真实点击 v1.2.1-点亮增强，多标签支持，日志，独立按钮任务版）
+// @name         JD 抢券大师（真实点击 v1.2.1-点亮增强，多标签支持，日志）
 // @namespace    http://tampermonkey.net/
 // @version      1.2.1.3
-// @description  多按钮记录、定时刷新后点击、循环抢券、即时生效设置、真实测试功能、ESC 终止。新增点亮版模式：在设定时间按设置先点击再刷新循环执行。测试按钮可分别测试普通与点亮模式。支持 pro、prodev 与 h5static 域名。支持多标签页独立抢券任务。每个按钮独立检测点击，全部完成后刷新页面。
+// @description  多按钮记录、定时刷新后点击、循环抢券、即时生效设置、真实测试功能、ESC 终止。新增点亮版模式：在设定时间按设置先点击再刷新循环执行。测试按钮可分别测试普通与点亮模式。支持 pro、prodev 与 h5static 域名。支持多标签页独立抢券任务。
 // @match        https://pro.m.jd.com/*
 // @match        https://prodev.m.jd.com/*
 // @match        https://h5static.m.jd.com/*
@@ -47,7 +47,7 @@ function getDomPath(el){
     while(el && el.nodeType===1 && el!==document.body){
         let idx=1, sib=el;
         while(sib=sib.previousElementSibling) if(sib.nodeName===el.nodeName) idx++;
-        const tag = el.nodeName.toLowerCase() + (idx>1 ? `:nth-of-type(${idx})` : '');
+        const tag = el.nodeName.toLowerCase() + (idx>1?`:nth-of-type(${idx})`: '');
         stack.unshift(tag);
         el=el.parentElement;
     }
@@ -59,7 +59,7 @@ function queryByPath(path){ try{ return document.querySelector(path);}catch{retu
 const panel = document.createElement('div');
 panel.id = 'jd-settings-panel';
 panel.style = 'position:fixed;top:10px;right:10px;z-index:9999;' +
-              'background:#fff;border:1px solid #333;padding:10px;font-size:12px;max-width:260px;';
+              'background:#fff;border:1px solid #333;padding:10px;font-size:12px;';
 panel.innerHTML = `
     <div><b>JD 抢券大师</b></div>
     <div>时间 <input id="in-time"      value="${cfg.scheduleTime}"    style="width:70px"></div>
@@ -77,7 +77,7 @@ panel.innerHTML = `
         <button id="btn-test1">测试按钮识别</button>
         <button id="btn-test2">测试整体流程</button>
     </div>
-    <div style="margin-top:5px;color:#555;font-size:10px;word-break: break-word;">
+    <div style="margin-top:5px;color:#555;font-size:10px;">
         当前任务标识：<span style="color:#080">${taskTag}</span><br>
         请在“${cfg.scheduleTime}”前点击目标按钮，最多 ${cfg.buttonLimit} 个
     </div>
@@ -135,7 +135,7 @@ document.getElementById('btn-test2').onclick = ()=>{
     if(!selectors.length) return alert('未记录按钮');
     if(cfg.dianMode){
         alert('点亮模式流程测试：先点击再循环刷新点击');
-        runClickLoop(cfg, selectors);
+        runClickLoop();
     } else {
         alert('普通模式流程测试：刷新后循环点击');
         sessionStorage.setItem(FLAG_KEY,'1');
@@ -154,7 +154,7 @@ function scheduleProcess(){
     console.log(`[调度] ${delay}ms 后触发${cfg.dianMode? '点亮模式':'普通模式'}流程`);
     reloadTimerId = setTimeout(()=>{
         if(cfg.dianMode){
-            runClickLoop(cfg, selectors);
+            runClickLoop();
         } else {
             sessionStorage.setItem(FLAG_KEY,'1');
             location.reload();
@@ -162,7 +162,7 @@ function scheduleProcess(){
     }, delay);
 }
 
-// ✅ —— 模拟真实用户点击 —— 
+// ✅ —— 模拟真实用户点击 ——
 function simulateRealClick(el){
     const rect = el.getBoundingClientRect();
     ['mouseover','mousedown','mouseup','click'].forEach(type=>{
@@ -177,83 +177,50 @@ function simulateRealClick(el){
     });
 }
 
-// —— 延迟函数
-function delay(ms){
-    return new Promise(resolve=>setTimeout(resolve, ms));
-}
+// —— 点击循环 ——（改进版，每次点击前确认按钮是否存在）
+let stopped = false;
+async function runClickLoop(){
+    stopped = false;
+    console.log(`[流程]开始点击 共${cfg.clickCount}次 间隔${cfg.clickInterval}ms`);
 
-// —— 查询路径等待按钮出现 —— 
-function waitForButton(path, timeout=30000, interval=200){
-    const start = Date.now();
-    return new Promise(resolve=>{
-        const check = ()=>{
-            const el = queryByPath(path);
-            if(el){
-                resolve(el);
-            } else if(Date.now() - start > timeout){
-                resolve(null);
-            } else {
-                setTimeout(check, interval);
+    for(let i=0; i<cfg.clickCount; i++){
+        for(const [index, p] of selectors.entries()){
+            if(stopped) return;
+
+            const el = queryByPath(p);
+            if(!el){
+                console.warn(`[流程]第${i+1}轮 未找到按钮 [${index+1}]: ${p}`);
+                continue;
             }
-        };
-        check();
-    });
-}
 
-// —— 独立任务版点击循环 —— 
-async function runClickLoop(settings, recordedSelectors){
-    if(!recordedSelectors.length){
-        alert('请先记录至少一个按钮');
-        return;
+            simulateRealClick(el);
+            console.log(`[流程]第${i+1}轮 点击第${index+1}个按钮: ${p}`);
+        }
+
+        await new Promise(r=>setTimeout(r, cfg.clickInterval));
     }
 
-    const refreshDelay = settings.refreshDelay;
-    const clickTimes = settings.clickCount;
-    const clickInterval = settings.clickInterval;
-
-    console.log(`[流程] 开始独立按钮点击任务，共 ${recordedSelectors.length} 个按钮，每个点击 ${clickTimes} 次`);
-
-    // 并行执行每个按钮的点击任务
-    const tasks = recordedSelectors.map((path, idx) => (async ()=>{
-        console.log(`[任务${idx+1}] 等待按钮出现...`);
-        const el = await waitForButton(path);
-        if(!el){
-            console.warn(`[任务${idx+1}] 按钮未出现，跳过`);
-            return;
-        }
-        console.log(`[任务${idx+1}] 按钮已出现，开始点击`);
-        for(let i=0; i<clickTimes; i++){
-            simulateRealClick(el);
-            console.log(`[任务${idx+1}] 第${i+1}次点击`);
-            await delay(clickInterval);
-        }
-        console.log(`[任务${idx+1}] 点击完成`);
-    })());
-
-    await Promise.all(tasks);
-    console.log(`[流程] 所有按钮点击完成，${refreshDelay}ms 后刷新页面`);
-    setTimeout(()=>{
-        sessionStorage.removeItem(FLAG_KEY);
-        location.reload();
-    }, refreshDelay);
+    if(stopped) return;
+    await new Promise(r=>setTimeout(r, cfg.refreshDelay));
+    sessionStorage.setItem(FLAG_KEY,'1');
+    location.reload();
 }
 
-// —— 页面入口 —— 
-if(sessionStorage.getItem(FLAG_KEY) === '1'){
-    console.log('[启动] 普通模式：页面刷新后开始点击循环');
-    runClickLoop(cfg, selectors);
-} else {
-    console.log('[启动] 等待定时触发流程');
-    scheduleProcess();
-}
-
-// —— ESC 键终止 —— 
-window.addEventListener('keydown', e=>{
+// —— ESC 终止 ——
+document.addEventListener('keydown', e=>{
     if(e.key==='Escape'){
-        console.log('[终止] 用户按下 ESC，取消抢券任务');
-        sessionStorage.removeItem(FLAG_KEY);
-        alert('已终止抢券任务');
+        stopped=true;
+        if(reloadTimerId) clearTimeout(reloadTimerId);
+        alert('已停止循环点击与定时刷新');
     }
 });
+
+// —— 页面入口 ——
+if(sessionStorage.getItem(FLAG_KEY)==='1'){
+    sessionStorage.removeItem(FLAG_KEY);
+    runClickLoop();
+} else {
+    scheduleProcess();
+}
 
 })();
