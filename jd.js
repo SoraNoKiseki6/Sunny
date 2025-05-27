@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         JD 抢券大师（真实点击 v1.2.1-点亮增强）
+// @name         JD 抢券大师（v1.2.8-异步任务）
 // @namespace    http://tampermonkey.net/
-// @version      1.2.1.1
-// @description  多按钮记录、定时刷新后点击、循环抢券、即时生效设置、真实测试功能、ESC 终止。新增点亮版模式：在设定时间按设置先点击再刷新循环执行。测试按钮可分别测试普通与点亮模式。支持 pro、prodev 与 h5static 域名。
+// @version      1.2.8
+// @description  多按钮记录、定时刷新后点击、循环抢券、即时生效设置、真实测试功能、ESC 终止。新增点亮版模式：在设定时间按设置先点击再刷新循环执行。测试按钮可分别测试普通与点亮模式。支持 pro、prodev 与 h5static 域名。支持多标签页独立抢券任务。
 // @match        https://pro.m.jd.com/*
 // @match        https://prodev.m.jd.com/*
 // @match        https://h5static.m.jd.com/*
@@ -14,17 +14,26 @@
 (function(){
 'use strict';
 
-// —— 存储 Key & 默认设置 ——
-const FLAG_KEY   = 'JD_CLICK_FLAG';
-const SEL_KEY    = 'JD_SELECTORS';
-const CFG_KEY    = 'JD_CFG';
+// —— 自动生成标签页唯一标识 ——（sessionStorage 保证同一标签页内固定、关闭失效）
+let stopped = false;
+let taskTag = sessionStorage.getItem('jd_unique_task_id');
+if (!taskTag) {
+    taskTag = 'task_' + Math.random().toString(36).substr(2, 9);
+    sessionStorage.setItem('jd_unique_task_id', taskTag);
+}
+console.log(`[JD抢券] 当前任务标识: ${taskTag}`);
+
+// —— 存储 Key & 默认设置 ——（带任务标识）
+const FLAG_KEY   = `JD_CLICK_FLAG_${taskTag}`;
+const SEL_KEY    = `JD_SELECTORS_${taskTag}`;
+const CFG_KEY    = `JD_CFG_${taskTag}`;
 const defaults = {
     scheduleTime:  '10:00:00',
-    advanceMs:     200,
-    clickCount:    3,
-    clickInterval: 100,
-    refreshDelay:  200,
-    buttonLimit:   4,
+    advanceMs:     800,
+    clickCount:    4,
+    clickInterval: 150,
+    refreshDelay:  100,
+    buttonLimit:   1,
     dianMode:      false
 };
 
@@ -72,6 +81,7 @@ panel.innerHTML = `
         <button id="btn-test2">测试整体流程</button>
     </div>
     <div style="margin-top:5px;color:#555;font-size:10px;">
+        当前任务标识：<span style="color:#080">${taskTag}</span><br>
         请在“${cfg.scheduleTime}”前点击目标按钮，最多 ${cfg.buttonLimit} 个
     </div>
 `;
@@ -170,26 +180,47 @@ function simulateRealClick(el){
     });
 }
 
-// —— 点击循环 ——
-let stopped = false;
+// —— 点击循环——独立异步任务版——
 async function runClickLoop(){
     stopped = false;
-    console.log(`[流程]开始点击 共${cfg.clickCount}次 间隔${cfg.clickInterval}ms`);
-    for(const p of selectors){
-        const el = queryByPath(p);
-        if(!el){ console.warn(`[流程]找不到按钮:${p}`); continue; }
+    console.log(`[流程] 开始独立异步任务：共 ${selectors.length} 个按钮，每个点击 ${cfg.clickCount} 次`);
+
+    // 为每个按钮启动一个独立任务
+    const tasks = selectors.map((path, idx) => (async ()=>{
+        console.log(`[任务${idx+1}] 开始检测按钮...`);
+        // 轮询检测，最多等 10 秒（根据抢券节奏可调）
+        const start = Date.now();
+        let el;
+        while(Date.now() - start < 10000){
+            el = queryByPath(path);
+            if(el) break;
+            await new Promise(r=>setTimeout(r, 50));  // 每 50ms 检测一次
+        }
+        if(!el){
+            console.warn(`[任务${idx+1}] ${path} 未检测到，跳过`);
+            return;
+        }
+        console.log(`[任务${idx+1}] 检测到按钮，开始点击`);
         for(let i=0; i<cfg.clickCount; i++){
             if(stopped) return;
             simulateRealClick(el);
+            console.log(`[任务${idx+1}] 第 ${i+1}/${cfg.clickCount} 次点击`);
             await new Promise(r=>setTimeout(r, cfg.clickInterval));
         }
-    }
+        console.log(`[任务${idx+1}] 点击完成`);
+    })());
+
+    // 并行等待所有任务完成
+    await Promise.all(tasks);
+
     if(stopped) return;
+    console.log(`[流程] 所有任务完成，${cfg.refreshDelay}ms 后刷新`);
     await new Promise(r=>setTimeout(r, cfg.refreshDelay));
     sessionStorage.setItem(FLAG_KEY,'1');
     location.reload();
 }
 
+// —— ESC 终止 ——
 document.addEventListener('keydown', e=>{
     if(e.key==='Escape'){
         stopped=true;
