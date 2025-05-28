@@ -1,226 +1,224 @@
 // ==UserScript==
-// @name         JD 抢券大师（真实点击 v1.2.1-点亮增强，多标签支持，日志）
+// @name         定时刷新当前页面（每标签页独立设置+互不影响）
 // @namespace    http://tampermonkey.net/
-// @version      1.2.1.3
-// @description  多按钮记录、定时刷新后点击、循环抢券、即时生效设置、真实测试功能、ESC 终止。新增点亮版模式：在设定时间按设置先点击再刷新循环执行。测试按钮可分别测试普通与点亮模式。支持 pro、prodev 与 h5static 域名。支持多标签页独立抢券任务。
-// @match        https://pro.m.jd.com/*
-// @match        https://prodev.m.jd.com/*
-// @match        https://h5static.m.jd.com/*
-// @grant        none
+// @version      1.3
+// @description  每个标签页单独设置定时刷新，支持倒计时、进度条、ESC终止任务，刷新状态与设置均在当前页有效。
+// @author       GPT
+// @match        *://api.m.jd.com/*
+// @grant        GM_addStyle
 // ==/UserScript==
 
-(function(){
-'use strict';
+(function () {
+    'use strict';
 
-// —— 自动生成标签页唯一标识 ——（sessionStorage 保证同一标签页内固定、关闭失效）
-let taskTag = sessionStorage.getItem('jd_unique_task_id');
-if (!taskTag) {
-    taskTag = 'task_' + Math.random().toString(36).substr(2, 9);
-    sessionStorage.setItem('jd_unique_task_id', taskTag);
-}
-console.log(`[JD抢券] 当前任务标识: ${taskTag}`);
-
-// —— 存储 Key & 默认设置 ——（带任务标识）
-const FLAG_KEY   = `JD_CLICK_FLAG_${taskTag}`;
-const SEL_KEY    = `JD_SELECTORS_${taskTag}`;
-const CFG_KEY    = `JD_CFG_${taskTag}`;
-const defaults = {
-    scheduleTime:  '10:00:00',
-    advanceMs:     800,
-    clickCount:    4,
-    clickInterval: 150,
-    refreshDelay:  100,
-    buttonLimit:   1,
-    dianMode:      false
-};
-
-// —— 加载/保存 配置 & 选择器列表 ——
-let cfg = Object.assign({}, defaults, JSON.parse(localStorage.getItem(CFG_KEY) || '{}'));
-let selectors = JSON.parse(localStorage.getItem(SEL_KEY) || '[]');
-function saveCfg() { localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); }
-function saveSel() { localStorage.setItem(SEL_KEY, JSON.stringify(selectors)); }
-
-// —— 生成唯一 DOM 路径 ——
-function getDomPath(el){
-    if(!(el instanceof Element)) return '';
-    const stack = [];
-    while(el && el.nodeType===1 && el!==document.body){
-        let idx=1, sib=el;
-        while(sib=sib.previousElementSibling) if(sib.nodeName===el.nodeName) idx++;
-        const tag = el.nodeName.toLowerCase() + (idx>1?`:nth-of-type(${idx})`: '');
-        stack.unshift(tag);
-        el=el.parentElement;
+    // 生成当前标签页唯一任务标识（sessionStorage 保持，标签页关闭即失效）
+    let taskTag = sessionStorage.getItem('jd_unique_task_id');
+    if (!taskTag) {
+        taskTag = 'task_' + Math.random().toString(36).substr(2, 9);
+        sessionStorage.setItem('jd_unique_task_id', taskTag);
     }
-    return stack.join(' > ');
-}
-function queryByPath(path){ try{ return document.querySelector(path);}catch{return null;} }
+    console.log(`当前任务标识: ${taskTag}`);
 
-// —— 创建设置面板 ——
-const panel = document.createElement('div');
-panel.id = 'jd-settings-panel';
-panel.style = 'position:fixed;top:10px;right:10px;z-index:9999;' +
-              'background:#fff;border:1px solid #333;padding:10px;font-size:12px;';
-panel.innerHTML = `
-    <div><b>JD 抢券大师</b></div>
-    <div>时间 <input id="in-time"      value="${cfg.scheduleTime}"    style="width:70px"></div>
-    <div>提前刷新 <input id="in-adv"   type="number" value="${cfg.advanceMs}"      style="width:50px"> ms</div>
-    <div>点击次数 <input id="in-ct"     type="number" value="${cfg.clickCount}"     style="width:30px"></div>
-    <div>点击间隔 <input id="in-ci"     type="number" value="${cfg.clickInterval}" style="width:50px"> ms</div>
-    <div>刷新延迟 <input id="in-rd"     type="number" value="${cfg.refreshDelay}"  style="width:50px"> ms</div>
-    <div>按钮上限 <input id="in-bl"     type="number" value="${cfg.buttonLimit}"   style="width:30px"></div>
-    <div>
-        点亮版模式 <input type="checkbox" id="in-dian" ${cfg.dianMode? 'checked': ''}>
-    </div>
-    <div style="margin-top:5px;">
-        <button id="btn-save">保存设置</button>
-        <button id="btn-clear">清除记录</button><br>
-        <button id="btn-test1">测试按钮识别</button>
-        <button id="btn-test2">测试整体流程</button>
-    </div>
-    <div style="margin-top:5px;color:#555;font-size:10px;">
-        当前任务标识：<span style="color:#080">${taskTag}</span><br>
-        请在“${cfg.scheduleTime}”前点击目标按钮，最多 ${cfg.buttonLimit} 个
-    </div>
-`;
-document.body.appendChild(panel);
+    // 每标签页独立配置（存储在 sessionStorage）
+    let config = JSON.parse(sessionStorage.getItem(`${taskTag}_config`) || '{}');
+    config.timePoints = config.timePoints || [];
+    config.advanceMs = config.advanceMs || 0;
+    config.intervalMs = config.intervalMs || 500;
+    config.maxTimes = config.maxTimes || 1;
 
-// —— 设置即时生效 ——
-function applySettings(){
-    cfg.scheduleTime   = document.getElementById('in-time').value;
-    cfg.advanceMs      = parseInt(document.getElementById('in-adv').value)||0;
-    cfg.clickCount     = parseInt(document.getElementById('in-ct').value)||1;
-    cfg.clickInterval  = parseInt(document.getElementById('in-ci').value)||50;
-    cfg.refreshDelay   = parseInt(document.getElementById('in-rd').value)||200;
-    cfg.buttonLimit    = parseInt(document.getElementById('in-bl').value)||1;
-    cfg.dianMode       = document.getElementById('in-dian').checked;
-    saveCfg();
-    if(reloadTimerId) clearTimeout(reloadTimerId);
-    scheduleProcess();
-    alert('设置已保存并立即生效');
-}
-document.getElementById('btn-save').onclick = applySettings;
-document.getElementById('btn-clear').onclick = ()=>{
-    selectors = []; saveSel(); alert('已清除所有按钮记录');
-};
+    let refreshing = sessionStorage.getItem(`${taskTag}_refreshing`) === 'true';
+    let refreshCounter = parseInt(sessionStorage.getItem(`${taskTag}_refreshCounter`) || '0');
 
-// —— 面板内不记录按钮 ——
-let canRecord = true;
-panel.addEventListener('mouseenter', ()=>canRecord=false);
-panel.addEventListener('mouseleave', ()=>canRecord=true);
+    let countdownTimer = null;
+    let refreshTimer = null;
 
-// —— 手动点击记录 ——
-document.addEventListener('click', e=>{
-    if(!canRecord) return;
-    if(selectors.length>=cfg.buttonLimit) return;
-    const p = getDomPath(e.target);
-    if(p && !selectors.includes(p)){
-        selectors.push(p);
-        saveSel();
-        alert(`记录成功（第${selectors.length}个）：\n${p}`);
+    function parseTimeStr(str) {
+        const [h, m, s] = str.split(':').map(Number);
+        if ([h, m, s].some(x => isNaN(x) || x < 0 || h > 23 || m > 59 || s > 59)) return null;
+        const now = new Date();
+        const target = new Date();
+        target.setHours(h, m, s, 0);
+        if (target < now) target.setDate(target.getDate() + 1);
+        return target;
     }
-}, true);
 
-// —— 测试按钮识别 ——
-document.getElementById('btn-test1').onclick = ()=>{
-    if(!selectors.length) return alert('未记录按钮');
-    selectors.forEach((p,i)=>{
-        const el = queryByPath(p);
-        if(el){ simulateRealClick(el); console.log(`[测试1]点击第${i+1}按钮:${p}`);}
-        else console.warn(`[测试1]未找到第${i+1}按钮:${p}`);
-    });
-};
-
-// —— 测试整体流程 ——
-document.getElementById('btn-test2').onclick = ()=>{
-    if(!selectors.length) return alert('未记录按钮');
-    if(cfg.dianMode){
-        alert('点亮模式流程测试：先点击再循环刷新点击');
-        runClickLoop();
-    } else {
-        alert('普通模式流程测试：刷新后循环点击');
-        sessionStorage.setItem(FLAG_KEY,'1');
-        location.reload();
+    function getNextTargetTime() {
+        const now = new Date();
+        const targets = config.timePoints.map(parseTimeStr).filter(t => t !== null).sort((a, b) => a - b);
+        return targets.find(t => t - config.advanceMs > now);
     }
-};
 
-// —— 定时调度 ——
-let reloadTimerId = null;
-function scheduleProcess(){
-    const [hh,mm,ss] = cfg.scheduleTime.split(':').map(Number);
-    const now = Date.now();
-    const target = new Date(); target.setHours(hh,mm,ss,0);
-    let delay = target.getTime() - now - cfg.advanceMs;
-    if(delay < 0) delay += 86400000;
-    console.log(`[调度] ${delay}ms 后触发${cfg.dianMode? '点亮模式':'普通模式'}流程`);
-    reloadTimerId = setTimeout(()=>{
-        if(cfg.dianMode){
-            runClickLoop();
-        } else {
-            sessionStorage.setItem(FLAG_KEY,'1');
-            location.reload();
-        }
-    }, delay);
-}
+    function msToTime(ms) {
+        if (ms < 0) ms = 0;
+        const h = String(Math.floor(ms / 3600000)).padStart(2, '0');
+        const m = String(Math.floor((ms % 3600000) / 60000)).padStart(2, '0');
+        const s = String(Math.floor((ms % 60000) / 1000)).padStart(2, '0');
+        const msStr = String(ms % 1000).padStart(3, '0');
+        return `${h}:${m}:${s}.${msStr}`;
+    }
 
-// ✅ —— 模拟真实用户点击 ——
-function simulateRealClick(el){
-    const rect = el.getBoundingClientRect();
-    ['mouseover','mousedown','mouseup','click'].forEach(type=>{
-        const evt = new MouseEvent(type, {
-            view: window,
-            bubbles: true,
-            cancelable: true,
-            clientX: rect.left + rect.width/2,
-            clientY: rect.top + rect.height/2
-        });
-        el.dispatchEvent(evt);
-    });
-}
+    function createUI() {
+        const panel = document.createElement('div');
+        panel.id = 'tm-setting-panel';
+        panel.innerHTML = `
+    <div id="tm-header">
+        ⚙️ 定时刷新设置 <span style="font-size:12px; color:#ccc;">（任务编号: ${taskTag}）</span>
+        <span id="tm-toggle">⬆️</span>
+    </div>
+    <div id="tm-body">
+                <label>目标时间点 (HH:MM:SS, 多个用逗号):<br><input id="tm-times" style="width: 100%" placeholder="12:00:00,18:30:00" value="${config.timePoints.join(',')}"></label><br>
+                <label>提前时间 (毫秒):<br><input id="tm-advance" type="number" step="50" min="0" value="${config.advanceMs}"></label><br>
+                <label>刷新间隔 (毫秒):<br><input id="tm-interval" type="number" step="50" min="50" value="${config.intervalMs}"></label><br>
+                <label>每个时间点最大刷新次数:<br><input id="tm-max" type="number" min="1" value="${config.maxTimes}"></label><br>
+                <button id="tm-save">保存设置</button>
+            </div>
+        `;
+        document.body.appendChild(panel);
 
-// —— 点击循环 ——（改进版，每次点击前确认按钮是否存在）
-let stopped = false;
-async function runClickLoop(){
-    stopped = false;
-    console.log(`[流程]开始点击 共${cfg.clickCount}次 间隔${cfg.clickInterval}ms`);
-
-    for(let i=0; i<cfg.clickCount; i++){
-        for(const [index, p] of selectors.entries()){
-            if(stopped) return;
-
-            const el = queryByPath(p);
-            if(!el){
-                console.warn(`[流程]第${i+1}轮 未找到按钮 [${index+1}]: ${p}`);
-                continue;
+        document.getElementById('tm-save').addEventListener('click', () => {
+            const timesRaw = document.getElementById('tm-times').value;
+            const timesArr = timesRaw.split(',').map(t => t.trim()).filter(Boolean);
+            const validTimes = timesArr.filter(t => parseTimeStr(t) !== null);
+            if (validTimes.length === 0) {
+                alert('请至少输入一个有效的时间点，格式如 HH:MM:SS');
+                return;
             }
+            config.timePoints = validTimes;
+            config.advanceMs = Math.max(0, parseInt(document.getElementById('tm-advance').value) || 0);
+            config.intervalMs = Math.max(50, parseInt(document.getElementById('tm-interval').value) || 500);
+            config.maxTimes = Math.max(1, parseInt(document.getElementById('tm-max').value) || 1);
 
-            simulateRealClick(el);
-            console.log(`[流程]第${i+1}轮 点击第${index+1}个按钮: ${p}`);
+            sessionStorage.setItem(`${taskTag}_config`, JSON.stringify(config));
+            sessionStorage.removeItem(`${taskTag}_refreshing`);
+            sessionStorage.removeItem(`${taskTag}_refreshCounter`);
+            refreshing = false;
+            refreshCounter = 0;
+
+            setupCountdown();
+            alert('设置已保存，本标签页生效。');
+        });
+
+        document.getElementById('tm-toggle').addEventListener('click', () => {
+            const body = document.getElementById('tm-body');
+            const toggle = document.getElementById('tm-toggle');
+            if (body.style.display === 'none') {
+                body.style.display = 'block';
+                toggle.textContent = '⬆️';
+            } else {
+                body.style.display = 'none';
+                toggle.textContent = '⬇️';
+            }
+        });
+    }
+
+    function createCountdownUI() {
+        const countdown = document.createElement('div');
+        countdown.id = 'tm-countdown';
+        countdown.style.display = 'none';
+        document.body.appendChild(countdown);
+
+        const progress = document.createElement('div');
+        progress.id = 'tm-progress';
+        progress.style.display = 'none';
+        document.body.appendChild(progress);
+    }
+
+    function setupCountdown() {
+        if (countdownTimer) clearInterval(countdownTimer);
+        const countdownEl = document.getElementById('tm-countdown');
+        const nextTime = getNextTargetTime();
+
+        if (!nextTime || config.timePoints.length === 0) {
+            countdownEl.style.display = 'none';
+            return;
         }
 
-        await new Promise(r=>setTimeout(r, cfg.clickInterval));
+        countdownEl.style.display = 'block';
+        countdownTimer = setInterval(() => {
+            const now = new Date();
+            const left = nextTime - now;
+            countdownEl.textContent = '倒计时: ' + msToTime(left);
+            if (left <= config.advanceMs && !refreshing) {
+                clearInterval(countdownTimer);
+                startRefreshing();
+            }
+        }, 33);
     }
 
-    if(stopped) return;
-    await new Promise(r=>setTimeout(r, cfg.refreshDelay));
-    sessionStorage.setItem(FLAG_KEY,'1');
-    location.reload();
-}
+    function startRefreshing() {
+        refreshing = true;
+        sessionStorage.setItem(`${taskTag}_refreshing`, 'true');
+        refreshCounter = parseInt(sessionStorage.getItem(`${taskTag}_refreshCounter`) || '0');
 
-// —— ESC 终止 ——
-document.addEventListener('keydown', e=>{
-    if(e.key==='Escape'){
-        stopped=true;
-        if(reloadTimerId) clearTimeout(reloadTimerId);
-        alert('已停止循环点击与定时刷新');
+        const progressEl = document.getElementById('tm-progress');
+        progressEl.style.display = 'block';
+        progressEl.style.width = `${(refreshCounter / config.maxTimes) * 100}%`;
+
+        if (refreshTimer) clearTimeout(refreshTimer);
+        refreshTimer = setTimeout(() => {
+            refreshCounter++;
+            sessionStorage.setItem(`${taskTag}_refreshCounter`, refreshCounter.toString());
+
+            const percent = Math.min(100, (refreshCounter / config.maxTimes) * 100);
+            progressEl.style.width = percent + '%';
+
+            if (refreshCounter >= config.maxTimes) {
+                refreshing = false;
+                sessionStorage.removeItem(`${taskTag}_refreshing`);
+                sessionStorage.removeItem(`${taskTag}_refreshCounter`);
+                progressEl.style.display = 'none';
+                setupCountdown();
+            } else {
+                location.reload();
+            }
+        }, config.intervalMs);
     }
-});
 
-// —— 页面入口 ——
-if(sessionStorage.getItem(FLAG_KEY)==='1'){
-    sessionStorage.removeItem(FLAG_KEY);
-    runClickLoop();
-} else {
-    scheduleProcess();
-}
+    function stopAll() {
+        if (refreshTimer) clearTimeout(refreshTimer);
+        if (countdownTimer) clearInterval(countdownTimer);
+        const progressEl = document.getElementById('tm-progress');
+        const countdownEl = document.getElementById('tm-countdown');
+        if (progressEl) progressEl.style.display = 'none';
+        if (countdownEl) countdownEl.style.display = 'none';
+        refreshing = false;
+        sessionStorage.removeItem(`${taskTag}_refreshing`);
+        sessionStorage.removeItem(`${taskTag}_refreshCounter`);
+    }
 
+    window.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            stopAll();
+            alert('刷新任务已终止');
+        }
+    });
+
+    GM_addStyle(`
+        #tm-setting-panel { position: fixed; bottom: 10px; right: 10px; background: #222; color: #eee;
+            padding: 12px; border-radius: 12px; width: 320px; z-index: 999999; box-shadow: 0 0 15px #000; }
+        #tm-setting-panel label { display: block; margin-bottom: 8px; }
+        #tm-setting-panel input, #tm-setting-panel button { width: 100%; padding: 6px; margin-top: 4px; border-radius: 6px; }
+        #tm-setting-panel button { background: #1e90ff; color: white; border: none; font-weight: bold; }
+        #tm-header { font-weight: bold; font-size: 16px; display: flex; justify-content: space-between; cursor: pointer; }
+        #tm-toggle { font-size: 18px; }
+        #tm-countdown { position: fixed; top: 10px; right: 10px; background: #111; color: #0f0;
+            padding: 6px 12px; border-radius: 8px; font-family: monospace; font-size: 14px; z-index: 999999; }
+        #tm-progress { position: fixed; top: 45px; right: 10px; width: 140px; height: 8px;
+            background: #222; border-radius: 6px; overflow: hidden; z-index: 999999; }
+    `);
+
+    function init() {
+        createUI();
+        createCountdownUI();
+        if (refreshing) {
+            const progressEl = document.getElementById('tm-progress');
+            progressEl.style.display = 'block';
+            progressEl.style.width = `${(refreshCounter / config.maxTimes) * 100}%`;
+            startRefreshing();
+        } else if (config.timePoints.length > 0) {
+            setupCountdown();
+        }
+    }
+
+    init();
 })();
