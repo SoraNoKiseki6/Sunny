@@ -23,10 +23,10 @@
 
     // 每标签页独立配置（存储在 sessionStorage）
     let config = JSON.parse(sessionStorage.getItem(`${taskTag}_config`) || '{}');
-    config.timePoints = config.timePoints || [];
-    config.advanceMs = config.advanceMs || 0;
-    config.intervalMs = config.intervalMs || 500;
-    config.maxTimes = config.maxTimes || 1;
+    config.timePoints = config.timePoints || ['10:00:00'];
+    config.advanceMs = config.advanceMs || 800;
+    config.intervalMs = config.intervalMs || 100;
+    config.maxTimes = config.maxTimes || 25;
 
     let refreshing = sessionStorage.getItem(`${taskTag}_refreshing`) === 'true';
     let refreshCounter = parseInt(sessionStorage.getItem(`${taskTag}_refreshCounter`) || '0');
