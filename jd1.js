@@ -5,6 +5,8 @@
 // @description  每个标签页单独设置定时刷新，支持倒计时、进度条、ESC终止任务，刷新状态与设置均在当前页有效。
 // @author       GPT
 // @match        *://api.m.jd.com/*
+// @updateURL   https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/jd1.js
+// @downloadURL https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/jd1.js
 // @grant        GM_addStyle
 // ==/UserScript==
 
