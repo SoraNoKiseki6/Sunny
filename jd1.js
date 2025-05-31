@@ -1,56 +1,30 @@
 // ==UserScript==
-// @name         定时刷新当前页面（每标签页独立设置+互不影响）
+// @name         京东抢券任务器（改进版）
 // @namespace    http://tampermonkey.net/
-// @version      1.3
-// @description  每个标签页单独设置定时刷新，支持倒计时、进度条、ESC终止任务，刷新状态与设置均在当前页有效。
-// @author       GPT
+// @version      2.5
+// @description  动态自适应界面，任务独立执行，使用 setTimeout 精准触发，实时倒计时显示
 // @match        *://api.m.jd.com/*
+// @grant        GM_addStyle
 // @updateURL   https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/jd1.js
 // @downloadURL https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/jd1.js
-// @grant        GM_addStyle
 // ==/UserScript==
 
 (function () {
     'use strict';
 
-    // 生成当前标签页唯一任务标识（sessionStorage 保持，标签页关闭即失效）
-    let taskTag = sessionStorage.getItem('jd_unique_task_id');
-    if (!taskTag) {
-        taskTag = 'task_' + Math.random().toString(36).substr(2, 9);
-        sessionStorage.setItem('jd_unique_task_id', taskTag);
-    }
-    console.log(`当前任务标识: ${taskTag}`);
+    let taskCounter = 1;
+    const tasks = [];
 
-    // 每标签页独立配置（存储在 sessionStorage）
-    let config = JSON.parse(sessionStorage.getItem(`${taskTag}_config`) || '{}');
-    config.timePoints = config.timePoints || ['10:00:00'];
-    config.advanceMs = config.advanceMs || 800;
-    config.intervalMs = config.intervalMs || 100;
-    config.maxTimes = config.maxTimes || 25;
-
-    let refreshing = sessionStorage.getItem(`${taskTag}_refreshing`) === 'true';
-    let refreshCounter = parseInt(sessionStorage.getItem(`${taskTag}_refreshCounter`) || '0');
-
-    let countdownTimer = null;
-    let refreshTimer = null;
-
-    function parseTimeStr(str) {
+    function parseTime(str) {
         const [h, m, s] = str.split(':').map(Number);
-        if ([h, m, s].some(x => isNaN(x) || x < 0 || h > 23 || m > 59 || s > 59)) return null;
         const now = new Date();
         const target = new Date();
         target.setHours(h, m, s, 0);
-        if (target < now) target.setDate(target.getDate() + 1);
+        if (target <= now) target.setDate(target.getDate() + 1);
         return target;
     }
 
-    function getNextTargetTime() {
-        const now = new Date();
-        const targets = config.timePoints.map(parseTimeStr).filter(t => t !== null).sort((a, b) => a - b);
-        return targets.find(t => t - config.advanceMs > now);
-    }
-
-    function msToTime(ms) {
+    function formatMs(ms) {
         if (ms < 0) ms = 0;
         const h = String(Math.floor(ms / 3600000)).padStart(2, '0');
         const m = String(Math.floor((ms % 3600000) / 60000)).padStart(2, '0');
@@ -59,168 +33,285 @@
         return `${h}:${m}:${s}.${msStr}`;
     }
 
-    function createUI() {
-        const panel = document.createElement('div');
-        panel.id = 'tm-setting-panel';
-        panel.innerHTML = `
-    <div id="tm-header">
-        ⚙️ 定时刷新设置 <span style="font-size:12px; color:#ccc;">（任务编号: ${taskTag}）</span>
-        <span id="tm-toggle">⬆️</span>
-    </div>
-    <div id="tm-body">
-                <label>目标时间点 (HH:MM:SS, 多个用逗号):<br><input id="tm-times" style="width: 100%" placeholder="12:00:00,18:30:00" value="${config.timePoints.join(',')}"></label><br>
-                <label>提前时间 (毫秒):<br><input id="tm-advance" type="number" step="50" min="0" value="${config.advanceMs}"></label><br>
-                <label>刷新间隔 (毫秒):<br><input id="tm-interval" type="number" step="50" min="50" value="${config.intervalMs}"></label><br>
-                <label>每个时间点最大刷新次数:<br><input id="tm-max" type="number" min="1" value="${config.maxTimes}"></label><br>
-                <button id="tm-save">保存设置</button>
+    function timestamp() {
+        const d = new Date();
+        return `${d.toLocaleTimeString('zh-CN', { hour12: false })}.${String(d.getMilliseconds()).padStart(3, '0')}`;
+    }
+
+    function logMessage(el, msg, color = '#ccc') {
+        const pre = document.createElement('pre');
+        pre.style.color = color;
+        pre.textContent = `[${timestamp()}] ${msg}`;
+        el.appendChild(pre);
+        el.scrollTop = el.scrollHeight;
+        console.log(`[任务日志] ${msg}`);
+    }
+
+    function createTask(url, timeStr, advanceMs, intervalMs, maxTimes, taskName) {
+        const targetDate = parseTime(timeStr);
+        const targetTimestamp = targetDate.getTime();
+        const fireTimestamp = targetTimestamp - advanceMs;
+        const now = Date.now();
+        const delay = Math.max(0, fireTimestamp - now);
+
+        const box = document.createElement('div');
+        box.className = 'task';
+        box.innerHTML = `
+            <div class="task-header">
+                <span class="task-title">任务 #${taskName}</span>
+                <div class="task-buttons">
+                    <button class="test-btn">测试</button>
+                    <button class="del-btn">删除</button>
+                </div>
             </div>
+            <div class="countdown">倒计时：${formatMs(targetTimestamp - now)}</div>
+            <div class="log"></div>
         `;
-        document.body.appendChild(panel);
+        document.getElementById('tasks').appendChild(box);
 
-        document.getElementById('tm-save').addEventListener('click', () => {
-            const timesRaw = document.getElementById('tm-times').value;
-            const timesArr = timesRaw.split(',').map(t => t.trim()).filter(Boolean);
-            const validTimes = timesArr.filter(t => parseTimeStr(t) !== null);
-            if (validTimes.length === 0) {
-                alert('请至少输入一个有效的时间点，格式如 HH:MM:SS');
-                return;
-            }
-            config.timePoints = validTimes;
-            config.advanceMs = Math.max(0, parseInt(document.getElementById('tm-advance').value) || 0);
-            config.intervalMs = Math.max(50, parseInt(document.getElementById('tm-interval').value) || 500);
-            config.maxTimes = Math.max(1, parseInt(document.getElementById('tm-max').value) || 1);
+        const cdEl = box.querySelector('.countdown');
+        const logEl = box.querySelector('.log');
+        const testBtn = box.querySelector('.test-btn');
+        const delBtn = box.querySelector('.del-btn');
 
-            sessionStorage.setItem(`${taskTag}_config`, JSON.stringify(config));
-            sessionStorage.removeItem(`${taskTag}_refreshing`);
-            sessionStorage.removeItem(`${taskTag}_refreshCounter`);
-            refreshing = false;
-            refreshCounter = 0;
+        let sentCount = 0;
+        let running = true;
+        let requestTimerId = null;
+        let countdownIntervalId = null;
 
-            setupCountdown();
-            alert('设置已保存，本标签页生效。');
-        });
+        // 实时更新倒计时显示
+        countdownIntervalId = setInterval(() => {
+            const remaining = targetTimestamp - Date.now();
+            cdEl.textContent = `倒计时：${formatMs(remaining)}`;
+        }, 100);
 
-        document.getElementById('tm-toggle').addEventListener('click', () => {
-            const body = document.getElementById('tm-body');
-            const toggle = document.getElementById('tm-toggle');
-            if (body.style.display === 'none') {
-                body.style.display = 'block';
-                toggle.textContent = '⬆️';
-            } else {
-                body.style.display = 'none';
-                toggle.textContent = '⬇️';
-            }
-        });
-    }
+        // 在 delay 毫秒后启动第一次 sendOnce，之后循环
+        requestTimerId = setTimeout(() => {
+            if (!running) return;
+            sendOnce();
+        }, delay);
 
-    function createCountdownUI() {
-        const countdown = document.createElement('div');
-        countdown.id = 'tm-countdown';
-        countdown.style.display = 'none';
-        document.body.appendChild(countdown);
-
-        const progress = document.createElement('div');
-        progress.id = 'tm-progress';
-        progress.style.display = 'none';
-        document.body.appendChild(progress);
-    }
-
-    function setupCountdown() {
-        if (countdownTimer) clearInterval(countdownTimer);
-        const countdownEl = document.getElementById('tm-countdown');
-        const nextTime = getNextTargetTime();
-
-        if (!nextTime || config.timePoints.length === 0) {
-            countdownEl.style.display = 'none';
-            return;
+        function sendOnce() {
+            if (!running || sentCount >= maxTimes) return;
+            sentCount++;
+            const startTime = Date.now();
+            fetch(url, { credentials: 'include' })
+                .then(res => res.text())
+                .then(text => {
+                    const duration = Date.now() - startTime;
+                    logMessage(logEl, `#${sentCount} 响应 (${duration}ms): ${text.slice(0, 200)}...`);
+                })
+                .catch(err => {
+                    const duration = Date.now() - startTime;
+                    logMessage(logEl, `#${sentCount} 错误 (${duration}ms): ${err}`, 'orange');
+                })
+                .finally(() => {
+                    setTimeout(sendOnce, intervalMs);
+                });
         }
 
-        countdownEl.style.display = 'block';
-        countdownTimer = setInterval(() => {
-            const now = new Date();
-            const left = nextTime - now;
-            countdownEl.textContent = '倒计时: ' + msToTime(left);
-            if (left <= config.advanceMs && !refreshing) {
-                clearInterval(countdownTimer);
-                startRefreshing();
+        testBtn.onclick = () => {
+            const now2 = Date.now();
+            fetch(url, { credentials: 'include' })
+                .then(res => res.text())
+                .then(text => {
+                    const duration = Date.now() - now2;
+                    logMessage(logEl, `立即测试响应 (${duration}ms): ${text.slice(0, 200)}...`, '#0f0');
+                })
+                .catch(err => {
+                    const duration = Date.now() - now2;
+                    logMessage(logEl, `立即测试错误 (${duration}ms): ${err}`, 'red');
+                });
+        };
+
+        delBtn.onclick = () => {
+            running = false;
+            clearTimeout(requestTimerId);
+            clearInterval(countdownIntervalId);
+            box.remove();
+        };
+
+        return {
+            stop: () => {
+                running = false;
+                clearTimeout(requestTimerId);
+                clearInterval(countdownIntervalId);
             }
-        }, 33);
+        };
     }
 
-    function startRefreshing() {
-        refreshing = true;
-        sessionStorage.setItem(`${taskTag}_refreshing`, 'true');
-        refreshCounter = parseInt(sessionStorage.getItem(`${taskTag}_refreshCounter`) || '0');
+    function setupUI() {
+        const ui = document.createElement('div');
+        ui.id = 'panel';
+        ui.innerHTML = `
+            <div class="panel-top">
+                <div class="row first-row">
+                    <input id="url" type="text" placeholder="粘贴 API URL" />
+                    <button id="add">添加任务</button>
+                </div>
+                <div class="row second-row">
+                    <label>时间
+                        <input id="time" type="text" value="10:00:00">
+                    </label>
+                    <label>提前(ms)
+                        <input id="adv" type="number" value="800">
+                    </label>
+                    <label>间隔(ms)
+                        <input id="intv" type="number" value="100">
+                    </label>
+                    <label>次数
+                        <input id="max" type="number" value="25">
+                    </label>
+                </div>
+            </div>
+            <div id="tasks"></div>
+            <div id="test-log"></div>
+        `;
+        document.body.appendChild(ui);
 
-        const progressEl = document.getElementById('tm-progress');
-        progressEl.style.display = 'block';
-        progressEl.style.width = `${(refreshCounter / config.maxTimes) * 100}%`;
+        document.getElementById('add').onclick = () => {
+            const url = document.getElementById('url').value.trim();
+            const timeStr = document.getElementById('time').value.trim();
+            const advanceMs = Math.max(0, parseInt(document.getElementById('adv').value, 10));
+            const intervalMs = Math.max(10, parseInt(document.getElementById('intv').value, 10));
+            const maxTimes = Math.max(1, parseInt(document.getElementById('max').value, 10));
 
-        if (refreshTimer) clearTimeout(refreshTimer);
-        refreshTimer = setTimeout(() => {
-            refreshCounter++;
-            sessionStorage.setItem(`${taskTag}_refreshCounter`, refreshCounter.toString());
-
-            const percent = Math.min(100, (refreshCounter / config.maxTimes) * 100);
-            progressEl.style.width = percent + '%';
-
-            if (refreshCounter >= config.maxTimes) {
-                refreshing = false;
-                sessionStorage.removeItem(`${taskTag}_refreshing`);
-                sessionStorage.removeItem(`${taskTag}_refreshCounter`);
-                progressEl.style.display = 'none';
-                setupCountdown();
-            } else {
-                location.reload();
-            }
-        }, config.intervalMs);
+            if (!url || !timeStr) return;
+            const taskHandle = createTask(url, timeStr, advanceMs, intervalMs, maxTimes, taskCounter++);
+            tasks.push(taskHandle);
+            document.getElementById('url').value = '';
+        };
     }
 
-    function stopAll() {
-        if (refreshTimer) clearTimeout(refreshTimer);
-        if (countdownTimer) clearInterval(countdownTimer);
-        const progressEl = document.getElementById('tm-progress');
-        const countdownEl = document.getElementById('tm-countdown');
-        if (progressEl) progressEl.style.display = 'none';
-        if (countdownEl) countdownEl.style.display = 'none';
-        refreshing = false;
-        sessionStorage.removeItem(`${taskTag}_refreshing`);
-        sessionStorage.removeItem(`${taskTag}_refreshCounter`);
-    }
+    GM_addStyle(`
+        #panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #1e1e1e;
+            color: #fff;
+            padding: 8px 12px;
+            font-size: 14px;
+            z-index: 999999;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+        .panel-top {
+            flex: 0 0 auto;
+            margin-bottom: 8px;
+        }
+        .first-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .first-row input {
+            flex: 1;
+            padding: 6px;
+            background: #333;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+        }
+        .first-row button {
+            padding: 6px 12px;
+            background: #007acc;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .second-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .second-row label {
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: #ccc;
+            gap: 8px;
+        }
+        .second-row input {
+            flex: 1;
+            padding: 4px;
+            background: #333;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        #tasks {
+            flex: 1 1 auto;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .task {
+            background: #2d2d2d;
+            border-radius: 6px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        .task-title {
+            font-weight: bold;
+            font-size: 14px;
+            color: #ffd700;
+        }
+        .task-buttons button {
+            margin-left: 4px;
+            padding: 2px 6px;
+            font-size: 12px;
+            background: #444;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .countdown {
+            font-size: 12px;
+            color: #0af;
+            margin-bottom: 4px;
+        }
+        .log {
+            flex: 1 1 auto;
+            background: #111;
+            padding: 4px;
+            font-size: 12px;
+            overflow-y: auto;
+            border-radius: 4px;
+            color: #ccc;
+            max-height: 100%;
+        }
+        .log pre {
+            margin: 2px 0;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+    `);
 
     window.addEventListener('keydown', e => {
         if (e.key === 'Escape') {
-            stopAll();
-            alert('刷新任务已终止');
+            tasks.forEach(t => t.stop());
+            console.log('已停止所有任务（ESC）');
         }
     });
 
-    GM_addStyle(`
-        #tm-setting-panel { position: fixed; bottom: 10px; right: 10px; background: #222; color: #eee;
-            padding: 12px; border-radius: 12px; width: 320px; z-index: 999999; box-shadow: 0 0 15px #000; }
-        #tm-setting-panel label { display: block; margin-bottom: 8px; }
-        #tm-setting-panel input, #tm-setting-panel button { width: 100%; padding: 6px; margin-top: 4px; border-radius: 6px; }
-        #tm-setting-panel button { background: #1e90ff; color: white; border: none; font-weight: bold; }
-        #tm-header { font-weight: bold; font-size: 16px; display: flex; justify-content: space-between; cursor: pointer; }
-        #tm-toggle { font-size: 18px; }
-        #tm-countdown { position: fixed; top: 10px; right: 10px; background: #111; color: #0f0;
-            padding: 6px 12px; border-radius: 8px; font-family: monospace; font-size: 14px; z-index: 999999; }
-        #tm-progress { position: fixed; top: 45px; right: 10px; width: 140px; height: 8px;
-            background: #222; border-radius: 6px; overflow: hidden; z-index: 999999; }
-    `);
-
-    function init() {
-        createUI();
-        createCountdownUI();
-        if (refreshing) {
-            const progressEl = document.getElementById('tm-progress');
-            progressEl.style.display = 'block';
-            progressEl.style.width = `${(refreshCounter / config.maxTimes) * 100}%`;
-            startRefreshing();
-        } else if (config.timePoints.length > 0) {
-            setupCountdown();
-        }
-    }
-
-    init();
+    setupUI();
 })();
