@@ -5,8 +5,8 @@
 // @description  动态多线程并发，任务结束后统一打印日志，服务器时间校准，界面优化，日志折叠
 // @match        *://api.m.jd.com/*
 // @grant        GM_addStyle
-// @updateURL   https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/jd1.js
-// @downloadURL https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/jd1.js
+// @updateURL   https://afan888.soranokiseki.dpdns.org/https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/jd1.js
+// @downloadURL https://afan888.soranokiseki.dpdns.org/https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/jd1.js
 // ==/UserScript==
 
 (function () {
