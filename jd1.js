@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         京东抢券任务器
 // @namespace    http://tampermonkey.net/
-// @version      2.6.18
-// @description  响应式布局的多线程抢券任务面板，支持手机使用，临时任务与按时间分组管理，任务组可编辑任务项，加载/取消执行，日志实时输出，服务器时间校准，折叠，任务组拖动排序，批量添加到多个任务组，耗时取整显示
+// @version      2.6.20
+// @description  响应式布局的多线程抢券任务面板，支持手机使用，临时任务与按时间分组管理，任务组可编辑任务项，加载/取消执行，日志实时输出，服务器时间校准，折叠/展开任务组，任务组拖动排序，批量添加到多个任务组，耗时取整显示
 // @match        *://api.m.jd.com/*
 // @grant        GM_addStyle
 // @updateURL   https://afan888.soranokiseki.dpdns.org/https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/jd1.js
@@ -34,6 +34,7 @@
             perfSend = performance.now();
         }
     }
+
     function now() {
         return serverTsBase + (performance.now() - perfSend);
     }
@@ -107,8 +108,9 @@
                 <button class="btn-load" data-name="${name}">加载</button>
                 <button class="btn-cancel" data-name="${name}">取消</button>
                 <button class="btn-edit-group" data-name="${name}">编辑任务</button>
-                <button class="btn-del-group" data-name="${name}">删除</button>
+                <button class="btn-del-group" data-name="${name}">删除组</button>
             `;
+            // 拖拽排序逻辑
             row.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', name); e.dataTransfer.effectAllowed = 'move'; row.classList.add('dragging'); });
             row.addEventListener('dragend', () => row.classList.remove('dragging'));
             row.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; row.classList.add('drag-over'); });
@@ -119,29 +121,90 @@
                 if (dragged === target) return;
                 const oldOrder = names.slice(); const draggedIdx = oldOrder.indexOf(dragged); const targetIdx = oldOrder.indexOf(target);
                 const newOrder = [];
-                oldOrder.forEach(n => { if (n === dragged) return; if (n === target) { if (draggedIdx < targetIdx) { newOrder.push(n); newOrder.push(dragged); } else { newOrder.push(dragged); newOrder.push(n); } } else { newOrder.push(n); } });
+                oldOrder.forEach(n => {
+                    if (n === dragged) return;
+                    if (n === target) {
+                        if (draggedIdx < targetIdx) { newOrder.push(n); newOrder.push(dragged); }
+                        else { newOrder.push(dragged); newOrder.push(n); }
+                    } else { newOrder.push(n); }
+                });
                 const newGroups = {};
-                newOrder.forEach(n => { newGroups[n] = groups[n]; }); saveGroups(newGroups); renderGroupPanel();
+                newOrder.forEach(n => { newGroups[n] = groups[n]; });
+                saveGroups(newGroups);
+                renderGroupPanel();
             });
             panel.appendChild(row);
         });
         document.querySelector('#panel .panel-top').insertAdjacentElement('afterend', panel);
+        // 按钮操作
         panel.querySelectorAll('.btn-load').forEach(btn => btn.onclick = () => onLoadGroup(btn.dataset.name));
-        panel.querySelectorAll('.btn-cancel').forEach(btn => { btn.onclick = () => { tasks.forEach(t => t.stop()); tasks.length = 0; document.getElementById('tasks').innerHTML = ''; updateTaskLayout(); }; });
-        panel.querySelectorAll('.btn-del-group').forEach(btn => { btn.onclick = () => { if (confirm(`确认删除任务组 "${btn.dataset.name}" 吗？`)) { deleteGroup(btn.dataset.name); renderGroupPanel(); } }; });
-        panel.querySelectorAll('.edit-group-name').forEach(input => { input.onblur = () => { const oldName = input.defaultValue; const newName = input.value.trim(); if (!newName) { input.value = oldName; return; } const g = getGroups(); if (newName !== oldName && g[newName]) { alert('组名已存在'); input.value = oldName; return; } if (newName !== oldName) { g[newName] = g[oldName]; delete g[oldName]; saveGroups(g); renderGroupPanel(); } }; });
+        panel.querySelectorAll('.btn-cancel').forEach(btn => { btn.onclick = () => {
+                    tasks.forEach(t => t.stop());
+                    tasks.length = 0;
+                    document.getElementById('tasks').innerHTML = '';
+                    updateTaskLayout();
+                };
+        });
+        panel.querySelectorAll('.btn-del-group').forEach(btn => { btn.onclick = () => {
+                    if (confirm(`确认删除任务组 "${btn.dataset.name}" 吗？`)) {
+                        // 删除前先停止并移除该组已加载的任务
+                        const groupTasks = getGroups()[btn.dataset.name]?.tasks || [];
+                        groupTasks.forEach(cfg => {
+                            tasks.slice().forEach(t => {
+                                const c = t.config;
+                                if (c.url === cfg.url && c.taskName === cfg.taskName && c.advanceMs === cfg.advanceMs && c.intervalMs === cfg.intervalMs && c.threads === cfg.threads && c.totalDuration === cfg.totalDuration) {
+                                    t.stop();
+                                    t.box.remove();
+                                    tasks.splice(tasks.indexOf(t), 1);
+                                }
+                            });
+                        });
+                        deleteGroup(btn.dataset.name);
+                        renderGroupPanel();
+                    }
+                };
+        });
+        panel.querySelectorAll('.edit-group-name').forEach(input => { input.onblur = () => {
+                const oldName = input.defaultValue;
+                const newName = input.value.trim();
+                if (!newName) { input.value = oldName; return; }
+                const g = getGroups();
+                if (newName !== oldName && g[newName]) {
+                    alert('组名已存在');
+                    input.value = oldName;
+                    return;
+                }
+                if (newName !== oldName) {
+                    g[newName] = g[oldName];
+                    delete g[oldName];
+                    saveGroups(g);
+                    renderGroupPanel();
+                }
+            };
+        });
         panel.querySelectorAll('.btn-edit-group').forEach(btn => btn.onclick = () => onEditGroup(btn.dataset.name));
     }
 
     function onLoadGroup(name) {
-        const groups = getGroups(); const groupObj = groups[name]; const list = groupObj.tasks || [];
-        tasks.forEach(t => t.stop()); tasks.length = 0; document.getElementById('tasks').innerHTML = '';
-        list.forEach(cfg => { const h = createTask(cfg.url, groupObj.time, cfg.advanceMs, cfg.intervalMs, cfg.totalDuration, cfg.threads, cfg.taskName); tasks.push(h); });
+        const groups = getGroups();
+        const groupObj = groups[name];
+        const list = groupObj.tasks || [];
+        // 先停止已有所有任务
+        tasks.forEach(t => t.stop());
+        tasks.length = 0;
+        document.getElementById('tasks').innerHTML = '';
+        // 重新加载该组任务
+        list.forEach(cfg => {
+            const h = createTask(cfg.url, groupObj.time, cfg.advanceMs, cfg.intervalMs, cfg.totalDuration, cfg.threads, cfg.taskName);
+            tasks.push(h);
+        });
         updateTaskLayout();
     }
 
     function onEditGroup(name) {
-        const groups = getGroups(); const groupObj = groups[name]; const list = groupObj.tasks || [];
+        const groups = getGroups();
+        const groupObj = groups[name];
+        const list = groupObj.tasks || [];
         const row = document.querySelector(`.btn-edit-group[data-name="${name}"]`).parentElement;
         let next = row.nextElementSibling;
         if (next && next.classList.contains('edit-panel')) { next.remove(); return; }
@@ -152,6 +215,7 @@
 
         function saveRows() {
             const newList = [];
+            // 收集新的任务配置
             panel.querySelectorAll('.edit-row').forEach(r => {
                 const taskName = r.querySelector('.edit-task-name').value.trim();
                 const url = r.querySelector('.edit-url').value.trim();
@@ -161,16 +225,39 @@
                 const totalDuration = parseInt(r.querySelector('.edit-duration').value, 10) || 0;
                 if (url) {
                     newList.push({ taskName, url, advanceMs, intervalMs, threads, totalDuration });
+                }
+            });
+            // 检测被删除的旧配置并移除对应的已加载任务
+            const oldList = list.slice();
+            oldList.forEach(oldCfg => {
+                const exists = newList.some(nc =>
+                    nc.url === oldCfg.url &&
+                    nc.taskName === oldCfg.taskName &&
+                    nc.advanceMs === oldCfg.advanceMs &&
+                    nc.intervalMs === oldCfg.intervalMs &&
+                    nc.threads === oldCfg.threads &&
+                    nc.totalDuration === oldCfg.totalDuration
+                );
+                if (!exists) {
                     tasks.slice().forEach(t => {
                         const c = t.config;
-                        if (c.url === url && c.taskName === taskName) {
-                            t.stop(); t.box.remove();
+                        if (
+                            c.url === oldCfg.url &&
+                            c.taskName === oldCfg.taskName &&
+                            c.advanceMs === oldCfg.advanceMs &&
+                            c.intervalMs === oldCfg.intervalMs &&
+                            c.threads === oldCfg.threads &&
+                            c.totalDuration === oldCfg.totalDuration
+                        ) {
+                            t.stop();
+                            t.box.remove();
                             tasks.splice(tasks.indexOf(t), 1);
                         }
                     });
                 }
             });
-            groupObj.tasks = newList; saveGroups(groups);
+            groupObj.tasks = newList;
+            saveGroups(groups);
         }
 
         list.forEach(cfg => {
@@ -243,9 +330,25 @@
         }
         const startId = setTimeout(execTask, delay);
 
-        toggleBtn.onclick = () => { if (box.classList.contains('collapsed')) { box.classList.remove('collapsed'); toggleBtn.textContent = '折叠'; } else { box.classList.add('collapsed'); toggleBtn.textContent = '展开'; } updateTaskLayout(); };
+        toggleBtn.onclick = () => {
+            if (box.classList.contains('collapsed')) {
+                box.classList.remove('collapsed');
+                toggleBtn.textContent = '折叠';
+            } else {
+                box.classList.add('collapsed');
+                toggleBtn.textContent = '展开';
+            }
+            updateTaskLayout();
+        };
         testBtn.onclick = () => execTask();
-        delBtn.onclick = () => { clearTimeout(startId); clearInterval(countdownId); box.remove(); const idx = tasks.findIndex(t => t.box === box); if (idx !== -1) tasks.splice(idx, 1); updateTaskLayout(); };
+        delBtn.onclick = () => {
+            clearTimeout(startId);
+            clearInterval(countdownId);
+            box.remove();
+            const idx = tasks.findIndex(t => t.box === box);
+            if (idx !== -1) tasks.splice(idx, 1);
+            updateTaskLayout();
+        };
 
         tasks.push({ config: { url, timeStr, advanceMs, intervalMs, totalDuration, threads, taskName }, stop: () => { clearTimeout(startId); clearInterval(countdownId); }, box });
         return { config: { url, timeStr, advanceMs, intervalMs, totalDuration, threads, taskName }, stop: () => { clearTimeout(startId); clearInterval(countdownId); }, box };
@@ -260,13 +363,14 @@
                     <input id="task-name" type="text" placeholder="任务名称可选" />
                     <button id="add-temp">添加临时任务</button>
                     <button id="add-to-group">添加到任务组</button>
+                    <button id="toggle-groups">折叠/展开组</button>
                 </div>
                 <div class="row second-row">
                     <label>时间<input id="time" type="text" value="10:00:00"></label>
-                    <label>提前(ms)<input id="adv" type="number" value="500"></label>
+                    <label>提前(ms)<input id="adv" type="number" value="300"></label>
                     <label>间隔(ms)<input id="intv" type="number" value="50"></label>
                     <label>并发<input id="threads" type="number" value="3"></label>
-                    <label>时长(ms)<input id="duration" type="number" value="2500"></label>
+                    <label>时长(ms)<input id="duration" type="number" value="4000"></label>
                 </div>
             </div>
             <div id="tasks"></div>
@@ -311,8 +415,14 @@
                 }
                 const list = groups[targetGroup].tasks;
                 const exists = list.some(cfg => cfg.url === url && cfg.advanceMs === advanceMs && cfg.intervalMs === intervalMs && cfg.totalDuration === totalDuration && cfg.threads === threads);
-                if (!exists) { list.push({ url, taskName, advanceMs, intervalMs, threads, totalDuration }); saveGroups(groups); renderGroupPanel(); taskCounter++; document.getElementById('url').value = ''; document.getElementById('task-name').value = ''; }
-                else alert('当前时间组中已存在相同任务');
+                if (!exists) {
+                    list.push({ url, taskName, advanceMs, intervalMs, threads, totalDuration });
+                    saveGroups(groups);
+                    renderGroupPanel();
+                    taskCounter++;
+                    document.getElementById('url').value = '';
+                    document.getElementById('task-name').value = '';
+                } else alert('当前时间组中已存在相同任务');
             } else {
                 let anyAdded = false;
                 checked.forEach(name => {
@@ -320,9 +430,20 @@
                     const exists = list.some(cfg => cfg.url === url && cfg.advanceMs === advanceMs && cfg.intervalMs === intervalMs && cfg.totalDuration === totalDuration && cfg.threads === threads);
                     if (!exists) { list.push({ url, taskName, advanceMs, intervalMs, threads, totalDuration }); anyAdded = true; }
                 });
-                if (anyAdded) { saveGroups(groups); renderGroupPanel(); taskCounter++; document.getElementById('url').value = ''; document.getElementById('task-name').value = ''; document.querySelectorAll('.group-select:checked').forEach(el => el.checked = false); }
-                else alert('所选组中已存在相同任务');
+                if (anyAdded) {
+                    saveGroups(groups);
+                    renderGroupPanel();
+                    taskCounter++;
+                    document.getElementById('url').value = '';
+                    document.getElementById('task-name').value = '';
+                    document.querySelectorAll('.group-select:checked').forEach(el => el.checked = false);
+                } else alert('所选组中已存在相同任务');
             }
+        };
+
+        document.getElementById('toggle-groups').onclick = () => {
+            const gp = document.querySelector('.group-panel');
+            if (gp) gp.classList.toggle('collapsed');
         };
     }
 
@@ -330,8 +451,8 @@
         /* 响应式整体面板 */
         #panel { position: fixed; top: 0; left: 0; bottom: 0; width: 100%; display: flex; flex-direction: column; padding: 8px; background: #1e1e1e; color: #fff; font-size: 14px; z-index: 999999; box-sizing: border-box; }
         .panel-top { flex: 0 0 auto; margin-bottom: 8px; }
-        .row { display: flex; gap: 8px; margin-bottom: 6px; /*no wrap by default*/ flex-wrap: nowrap; }
-        .first-row input { flex: 1 1 200px; /*fixed min*/ min-width: 120px; padding: 6px; background: #333; color: #fff; border: none; border-radius: 4px; font-size: 14px; }
+        .row { display: flex; gap: 8px; margin-bottom: 6px; flex-wrap: nowrap; }
+        .first-row input { flex: 1 1 200px; min-width: 120px; padding: 6px; background: #333; color: #fff; border: none; border-radius: 4px; font-size: 14px; }
         .first-row button { flex: 0 0 100px; min-width: 80px; padding: 6px; background: #007acc; border: none; border-radius: 4px; color: white; font-weight: bold; cursor: pointer; font-size: 14px; }
         .second-row { display: flex; justify-content: space-between; flex-wrap: nowrap; }
         .second-row label { flex: 1 1 140px; min-width: 100px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #ccc; }
@@ -344,6 +465,7 @@
             .second-row label { flex: 1 1 45%; margin-bottom: 6px; }
         }
         .group-panel { background: #2b2b2b; padding: 6px; border-radius: 4px; margin-bottom: 8px; overflow-x: auto; }
+        .group-panel.collapsed { display: none; }
         .group-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; padding: 4px; border: 1px solid #555; border-radius: 4px; background: #3a3a3a; flex-wrap: wrap; }
         .group-row.dragging { opacity: 0.5; }
         .group-row.drag-over { border-color: #007acc; }
@@ -363,7 +485,7 @@
         .task { background: #2d2d2d; border-radius: 6px; padding: 8px; display: flex; flex-direction: column; flex: 1 1 0; overflow: hidden; transition: flex 0.2s; }
         .task.collapsed .log { display: none; }
         .task-header { flex: 0 0 auto; display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; flex-wrap: wrap; }
-        .title-box { display: flex; align-items: center; gap: 8px; flex: 1 1 auto; min-width: 120px; }
+        .title-box { display: flex; align-items: center; gap: 8px; flex: 1 1	auto; min-width: 120px; }
         .task-title { font-weight: bold; font-size: 14px; color: #ffd700; flex: 1 1 auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .countdown { font-size: 12px; color: #0af; white-space: nowrap; }
         .task-buttons button { margin-left: 4px; padding: 2px 6px; font-size: 12px; background: #444; color: #fff; border: none; border-radius: 4px; cursor: pointer; min-width: 50px; }
@@ -373,5 +495,8 @@
 
     window.addEventListener('keydown', e => { if (e.key === 'Escape') tasks.forEach(t => t.stop()); });
 
-    calibrateServerTime().finally(() => { setupUI(); window.addEventListener('resize', updateTaskLayout); });
+    calibrateServerTime().finally(() => {
+        setupUI();
+        window.addEventListener('resize', updateTaskLayout);
+    });
 })();
