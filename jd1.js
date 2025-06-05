@@ -367,7 +367,7 @@
                 </div>
                 <div class="row second-row">
                     <label>时间<input id="time" type="text" value="10:00:00"></label>
-                    <label>提前(ms)<input id="adv" type="number" value="300"></label>
+                    <label>提前(ms)<input id="adv" type="number" value="600"></label>
                     <label>间隔(ms)<input id="intv" type="number" value="50"></label>
                     <label>并发<input id="threads" type="number" value="3"></label>
                     <label>时长(ms)<input id="duration" type="number" value="4000"></label>
