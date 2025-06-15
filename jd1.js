@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         京东抢券任务器
 // @namespace    http://tampermonkey.net/
-// @version      2.6.20
+// @version      2.6.21
 // @description  响应式布局的多线程抢券任务面板，支持手机使用，临时任务与按时间分组管理，任务组可编辑任务项，加载/取消执行，日志实时输出，服务器时间校准，折叠/展开任务组，任务组拖动排序，批量添加到多个任务组，耗时取整显示
-// @match        *://api.m.jd.com/*
+// @match        *://api.m.jd.com/
 // @grant        GM_addStyle
 // @updateURL   https://afan888.soranokiseki.dpdns.org/https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/jd1.js
 // @downloadURL https://afan888.soranokiseki.dpdns.org/https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/jd1.js
@@ -367,10 +367,10 @@
                 </div>
                 <div class="row second-row">
                     <label>时间<input id="time" type="text" value="10:00:00"></label>
-                    <label>提前(ms)<input id="adv" type="number" value="600"></label>
+                    <label>提前(ms)<input id="adv" type="number" value="550"></label>
                     <label>间隔(ms)<input id="intv" type="number" value="50"></label>
-                    <label>并发<input id="threads" type="number" value="3"></label>
-                    <label>时长(ms)<input id="duration" type="number" value="4000"></label>
+                    <label>并发<input id="threads" type="number" value="1"></label>
+                    <label>时长(ms)<input id="duration" type="number" value="3000"></label>
                 </div>
             </div>
             <div id="tasks"></div>
