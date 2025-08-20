@@ -1,7 +1,7 @@
 {
  "headers": [
 	 {
-      "host": "101.35.240.114:88",
+      "host": "101.35.240.114",
       "header": {
         "User-Agent": "AptvPlayer-UA"
 	  }
