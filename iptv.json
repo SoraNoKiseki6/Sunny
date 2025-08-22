@@ -16,7 +16,7 @@
  "lives": [
         {
             "name": "咪咕直播1",
-            "url": "https://gh-proxy.com/https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/iptv.m3u",
+            "url": "https://afan888.soranokiseki.dpdns.org/https://raw.githubusercontent.com/SoraNoKiseki6/Sunny/main/iptv.m3u",
             "epg": "https://down.nigx.cn/epg.112114.xyz/?ch={name}&date={date}",
 	    "logo": "https://down.nigx.cn/epg.112114.xyz/logo/{name}.png"
         },
