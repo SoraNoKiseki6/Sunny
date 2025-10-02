@@ -29,7 +29,8 @@
         },
 	    {
             "name": "咪咕直播3",
-            "url": "https://fy.188766.xyz/?ip=&haiwai=true",
+            "url": "https://fy.188766.xyz/?ip=&json=true",
+			"ua": "bingcha/1.1",
             "epg": "https://down.nigx.cn/epg.112114.xyz/?ch={name}&date={date}",
 	    "logo": "https://down.nigx.cn/epg.112114.xyz/logo/{name}.png"
         },
