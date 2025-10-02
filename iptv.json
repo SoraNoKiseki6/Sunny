@@ -23,7 +23,19 @@
         },
         {
             "name": "咪咕直播2",
-            "url": "https://gh-proxy.com/https://raw.githubusercontent.com/wwb521/live/main/tv.m3u",
+            "url": "https://ghcy.eu.org/https://raw.githubusercontent.com/develop202/migu_video/main/interface.txt",
+            "epg": "https://down.nigx.cn/epg.112114.xyz/?ch={name}&date={date}",
+	    "logo": "https://down.nigx.cn/epg.112114.xyz/logo/{name}.png"
+        },
+	    {
+            "name": "咪咕直播3",
+            "url": "https://fy.188766.xyz/?ip=&haiwai=true",
+            "epg": "https://down.nigx.cn/epg.112114.xyz/?ch={name}&date={date}",
+	    "logo": "https://down.nigx.cn/epg.112114.xyz/logo/{name}.png"
+        },
+	    {
+            "name": "咪咕直播4",
+            "url": "https://gh-proxy.com/https://raw.githubusercontent.com/suxuang/myIPTV/main/ipv4.m3u",
             "epg": "https://down.nigx.cn/epg.112114.xyz/?ch={name}&date={date}",
 	    "logo": "https://down.nigx.cn/epg.112114.xyz/logo/{name}.png"
         },
