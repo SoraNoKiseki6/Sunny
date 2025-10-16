@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         京东抢券Fetch捕获并复制链接（保留 key+roleId 且编码 Body）
 // @namespace    http://tampermonkey.net/
-// @version      1.7
+// @version      1.7.1
 // @description  监听 fetch，提取 key+roleId，拼接示例结构并对 Body 做 encodeURIComponent，复制到剪贴板
 // @author       Alex
 // @match        *://*.jd.com/*
@@ -62,9 +62,8 @@
             // 拼接最终 URL
             const finalUrl = [
                 'https://api.m.jd.com/client.action',
-                `?functionId=${params.functionId}`,
+                `?functionId=lite_newBabelAwardCollection`,
                 `&body=${encodedBody}`,
-                `&appid=babelh5`,
                 `&client=wh5`
             ].join('');
 
